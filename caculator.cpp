@@ -3,8 +3,8 @@
 void  CaculatorProc()
 {
 	//unsigned long long  WaitingTime = 0; //²éÑ¯´ÎÊý	
-	while (true)
-	{	
+	//while (true)
+	//{	
 	//		queue<CThostFtdcDepthMarketDataField> InsertDataList;// = new std::queue<CThostFtdcDepthMarketDataField>;
 	//		//g_lockqueue.lock();
 	//		//CThostFtdcDepthMarketDataField  DepthMarketDataField = m_dataList->front();
@@ -37,7 +37,7 @@ void  CaculatorProc()
 	//	else ///when queue is  empty
 	//	{
 
-	//	
-		}
+	///	
+	//	}
 	//}
 }
