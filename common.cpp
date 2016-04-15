@@ -56,9 +56,9 @@ char MD_FRONT_ADDR[] = "tcp://172.16.100.225:41213"; // MD配置参数
 
 char  TRADER_FRONT_ADDR[] = "tcp://172.16.100.225:41205";	// 前置地址
 
-TThostFtdcBrokerIDType	BROKER_ID = "7080";				// 经纪公司代码
-TThostFtdcInvestorIDType INVESTOR_ID = "20104965";			// 投资者代码
-TThostFtdcPasswordType  PASSWORD = "112288";			// 用户密码
+TThostFtdcBrokerIDType	BROKER_ID = 			// 经纪公司代码
+TThostFtdcInvestorIDType INVESTOR_ID = 		// 投资者代码
+TThostFtdcPasswordType  PASSWORD = 		// 用户密码
 //***************************************************************
 
 queue<Msg> MsgQueue;   ///消息队列

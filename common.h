@@ -68,10 +68,10 @@ extern char MD_FRONT_ADDR[];// = "tcp://172.16.100.225:41213";
 
 
 // Trader配置参数
-extern char  TRADER_FRONT_ADDR[];// = "tcp://172.16.100.225:41205";		// 前置地址
-extern TThostFtdcBrokerIDType	BROKER_ID;// = "7080";				// 经纪公司代码extern 
-extern TThostFtdcInvestorIDType INVESTOR_ID;//= "20104965";			// 投资者代码
-extern TThostFtdcPasswordType  PASSWORD;// = "112288";			// 用户密码
+extern char  TRADER_FRONT_ADDR[];		     // 前置地址
+extern TThostFtdcBrokerIDType	BROKER_ID;				// 经纪公司代码extern 
+extern TThostFtdcInvestorIDType INVESTOR_ID;			// 投资者代码
+extern TThostFtdcPasswordType  PASSWORD;			// 用户密码
 //***************************************************************
 
  enum MsgType
