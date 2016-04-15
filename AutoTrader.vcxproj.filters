@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="AutoTrader.cpp" />
+    <ClCompile Include="MdSpi.cpp">
+      <Filter>MD</Filter>
+    </ClCompile>
+    <ClCompile Include="TraderSpi.cpp">
+      <Filter>Trader</Filter>
+    </ClCompile>
+    <ClCompile Include="caculator.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="StructsDF.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="common.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="ThostTraderApi\ThostFtdcMdApi.h">
+      <Filter>ThostTraderApi</Filter>
+    </ClInclude>
+    <ClInclude Include="ThostTraderApi\ThostFtdcTraderApi.h">
+      <Filter>ThostTraderApi</Filter>
+    </ClInclude>
+    <ClInclude Include="ThostTraderApi\ThostFtdcUserApiDataType.h">
+      <Filter>ThostTraderApi</Filter>
+    </ClInclude>
+    <ClInclude Include="ThostTraderApi\ThostFtdcUserApiStruct.h">
+      <Filter>ThostTraderApi</Filter>
+    </ClInclude>
+    <ClInclude Include="MdSpi.h">
+      <Filter>MD</Filter>
+    </ClInclude>
+    <ClInclude Include="TraderSpi.h">
+      <Filter>Trader</Filter>
+    </ClInclude>
+    <ClInclude Include="glog\log_severity.h">
+      <Filter>glog</Filter>
+    </ClInclude>
+    <ClInclude Include="glog\logging.h">
+      <Filter>glog</Filter>
+    </ClInclude>
+    <ClInclude Include="glog\raw_logging.h">
+      <Filter>glog</Filter>
+    </ClInclude>
+    <ClInclude Include="glog\stl_logging.h">
+      <Filter>glog</Filter>
+    </ClInclude>
+    <ClInclude Include="glog\vlog_is_on.h">
+      <Filter>glog</Filter>
+    </ClInclude>
+    <ClInclude Include="AutoTrader.h" />
+    <ClInclude Include="caculator.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="common.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+    <Text Include="instruments.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="ThostTraderApi">
+      <UniqueIdentifier>{bed69040-7f7a-48fd-8f26-f65c08c610ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Trader">
+      <UniqueIdentifier>{14c7e2a1-efa3-408a-b45d-586e250d266a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MD">
+      <UniqueIdentifier>{027357e0-9717-45f7-9073-d396263756ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="glog">
+      <UniqueIdentifier>{f1f5840a-dba1-44b7-8211-40572841b377}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{b17bf4aa-69f6-40a8-ac5f-eb545b6bc599}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ThostTraderApi\thostmduserapi.dll">
+      <Filter>ThostTraderApi</Filter>
+    </None>
+    <None Include="ThostTraderApi\thosttraderapi.dll">
+      <Filter>ThostTraderApi</Filter>
+    </None>
+    <None Include="ThostTraderApi\error.dtd">
+      <Filter>ThostTraderApi</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="ThostTraderApi\thostmduserapi.lib">
+      <Filter>ThostTraderApi</Filter>
+    </Library>
+    <Library Include="ThostTraderApi\thosttraderapi.lib">
+      <Filter>ThostTraderApi</Filter>
+    </Library>
+    <Library Include="glog\libglog_static.lib">
+      <Filter>glog</Filter>
+    </Library>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="ThostTraderApi\error.xml">
+      <Filter>ThostTraderApi</Filter>
+    </Xml>
+  </ItemGroup>
+</Project>

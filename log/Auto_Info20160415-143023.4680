@@ -1,0 +1,15 @@
+Log file created at: 2016/04/15 14:30:23
+Running on machine: AIDEN
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+I0415 14:30:23.020367  6172 MdSpi.cpp:65] --->>> OnFrontConnected
+I0415 14:30:23.029371  6172 MdSpi.cpp:80] --->>> 发送用户登录请求: 成功
+I0415 14:30:23.032376  6172 MdSpi.cpp:87] --->>> OnRspUserLogin
+I0415 14:30:23.036375  6172 MdSpi.cpp:93] --->>> 获取当前交易日 = 20160415
+I0415 14:30:23.051385  1868 AutoTrader.cpp:377] OnRtnTrade | 合约: <IF1604> | Status : ALLNOT
+I0415 14:30:23.100421  7920 TraderSpi.cpp:584]  OnRtnOrder |合约：<IF1604> | 方向 ：买入  报单状态 ：报单已提交
+I0415 14:30:23.103421  7920 TraderSpi.cpp:587] OnRtnOrder | 合约: <IF1604> | 卖持可用 : 0
+I0415 14:30:23.109428  7920 TraderSpi.cpp:602]  OnRtnOrder |合约：<IF1604> | 方向 ：卖出  报单状态 ：报单已提交
+I0415 14:30:23.112428  7920 TraderSpi.cpp:605] OnRtnOrder | 合约: <IF1604> | 买持可用 : 0
+I0415 14:30:30.355540  7920 TraderSpi.cpp:584]  OnRtnOrder |合约：<IF1604> | 方向 ：买入  报单状态 ：报单已提交
+I0415 14:30:30.357540  7920 TraderSpi.cpp:587] OnRtnOrder | 合约: <IF1604> | 卖持可用 : 0
+I0415 14:31:02.283071  7920 TraderSpi.cpp:602]  OnRtnOrder |合约：<IF1604> | 方向 ：卖出  报单状态 ：报单已提交

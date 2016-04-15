@@ -1,0 +1,8 @@
+Log file created at: 2016/04/15 14:36:11
+Running on machine: AIDEN
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+I0415 14:36:11.432335 10100 MdSpi.cpp:65] --->>> OnFrontConnected
+I0415 14:36:11.437338 10100 MdSpi.cpp:80] --->>> 发送用户登录请求: 成功
+I0415 14:36:11.438349 10100 MdSpi.cpp:87] --->>> OnRspUserLogin
+I0415 14:36:11.439340 10100 MdSpi.cpp:93] --->>> 获取当前交易日 = 20160415
+I0415 14:36:56.567276  9140 AutoTrader.cpp:377] OnRtnTrade | 合约: <IF1604> | Status : ALLNOT
