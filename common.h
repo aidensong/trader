@@ -74,26 +74,32 @@ extern TThostFtdcInvestorIDType INVESTOR_ID;//= "20104965";			// 投资者代码
 extern TThostFtdcPasswordType  PASSWORD;// = "112288";			// 用户密码
 //***************************************************************
 
-
-
  enum MsgType
 	{
 		RtnOrder = 0,		// 委托回报
+
 		RtnTrade = 1,       // 成交回报
-		ErrorRspInfo = 2,   // 错误提示 
+		
+		InputOrder=2,       //报单录入
 
+		InputOrderAction = 3,   // 报单操作录入
 
+		//CThostFtdcInputOrderField
 	};
 
  struct Msg
  {
 	 MsgType Msg_Type;
 
-	 CThostFtdcRspInfoField RspInfo; //错误提示
-
 	 CThostFtdcOrderField  RtnOrder; //委托回报
 
 	 CThostFtdcTradeField  RtnTrade; //成交回报
+
+	 CThostFtdcInputOrderField InputOrder;//报单录入
+
+	 CThostFtdcInputOrderActionField InputOrderAction;//报单操作录入
+
+	 CThostFtdcRspInfoField RspInfo;
 
  };
 
