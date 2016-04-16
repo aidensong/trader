@@ -12,6 +12,36 @@
 #include  <queue> 
 #include <mutex>
 
+enum MsgType
+{
+	RtnOrder = 0,		// 委托回报
+
+	RtnTrade = 1,       // 成交回报
+
+	InputOrder = 2,       //报单录入
+
+	InputOrderAction = 3,   // 报单操作录入
+
+	//CThostFtdcInputOrderField
+};
+
+struct Msg
+{
+	MsgType Msg_Type;
+
+	CThostFtdcOrderField  RtnOrder; //委托回报
+
+	CThostFtdcTradeField  RtnTrade; //成交回报
+
+	CThostFtdcInputOrderField InputOrder;//报单录入
+
+	CThostFtdcInputOrderActionField InputOrderAction;//报单操作录入
+
+	CThostFtdcRspInfoField RspInfo;
+
+};
+
+
 //*************全局变量*************************************************************
 
 using namespace std;
@@ -74,34 +104,7 @@ extern TThostFtdcInvestorIDType INVESTOR_ID;			// 投资者代码
 extern TThostFtdcPasswordType  PASSWORD;			// 用户密码
 //***************************************************************
 
- enum MsgType
-	{
-		RtnOrder = 0,		// 委托回报
-
-		RtnTrade = 1,       // 成交回报
-		
-		InputOrder=2,       //报单录入
-
-		InputOrderAction = 3,   // 报单操作录入
-
-		//CThostFtdcInputOrderField
-	};
-
- struct Msg
- {
-	 MsgType Msg_Type;
-
-	 CThostFtdcOrderField  RtnOrder; //委托回报
-
-	 CThostFtdcTradeField  RtnTrade; //成交回报
-
-	 CThostFtdcInputOrderField InputOrder;//报单录入
-
-	 CThostFtdcInputOrderActionField InputOrderAction;//报单操作录入
-
-	 CThostFtdcRspInfoField RspInfo;
-
- };
+ 
 
  extern queue<Msg> MsgQueue;   ///消息队列
 
