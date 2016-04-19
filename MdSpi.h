@@ -14,6 +14,7 @@ using namespace std;
 class CMdSpi : public CThostFtdcMdSpi
 {
 public:
+	CMdSpi(CThostFtdcMdApi* api, CThostFtdcReqUserLoginField req) :pMDUserApi(api), reqLoginField(req){};
 	///´íÎóÓ¦´ð
 	virtual void OnRspError(CThostFtdcRspInfoField *pRspInfo,
 		int nRequestID, bool bIsLast);
@@ -56,9 +57,11 @@ public:
 	virtual void OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp);
 
 private:
+	CThostFtdcReqUserLoginField reqLoginField;
+	CThostFtdcMdApi* pMDUserApi;
+	
 	void ReqUserLogin();
 	void SubscribeMarketData();
-	void SubscribeForQuoteRsp();
-	// 
+	void SubscribeForQuoteRsp();	// 
 	bool IsErrorRspInfo(CThostFtdcRspInfoField *pRspInfo);
 };

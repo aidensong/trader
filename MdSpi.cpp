@@ -69,13 +69,13 @@ void CMdSpi::OnFrontConnected()
 
 void CMdSpi::ReqUserLogin()
 {
-	CThostFtdcReqUserLoginField req;
-	memset(&req, 0, sizeof(req));
-	strcpy(req.BrokerID, BROKER_ID);
-	strcpy(req.UserID, INVESTOR_ID);
-	strcpy(req.Password, PASSWORD);
+	//CThostFtdcReqUserLoginField req;
+	//memset(&req, 0, sizeof(req));
+	////strcpy(req.BrokerID, BROKER_ID);
+	////strcpy(req.UserID, INVESTOR_ID);
+	////strcpy(req.Password, PASSWORD);
 
-	int iResult = pMDUserApi->ReqUserLogin(&req, ++iRequestID);
+	int iResult = pMDUserApi->ReqUserLogin(&reqLoginField, ++iRequestID);
 	cerr << "--->>> 发送用户登录请求: " << ((iResult == 0) ? "成功" : "失败") << endl;
 	LOG(INFO) << "--->>> 发送用户登录请求: " << ((iResult == 0) ? "成功" : "失败") << endl;
 }

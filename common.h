@@ -46,9 +46,6 @@ struct Msg
 
 using namespace std;
 
-extern CThostFtdcMdApi* pMDUserApi;
-
-extern CThostFtdcTraderApi* pTraderUserApi;
 
 extern int iRequestID; // 请求编号
 
@@ -82,30 +79,8 @@ extern std::mutex   g_lockqueue;
 
 extern int spreed ;//= 2;
 
-extern int iNextOrderRef;  ///报单应用编号
+extern int iNextOrderRef;  ///报单应用编号 
 
-extern TThostFtdcOrderRefType	ORDER_REF;	//报单引用
-extern TThostFtdcOrderRefType	EXECORDER_REF;	//执行宣告引用
-extern TThostFtdcOrderRefType	FORQUOTE_REF;	//询价引用
-extern TThostFtdcOrderRefType	QUOTE_REF;	//报价引用
-
-extern TThostFtdcFrontIDType	FRONT_ID;	//前置编号
-extern TThostFtdcSessionIDType	SESSION_ID;	//会话编号
-
-// MD配置参数
-extern char MD_FRONT_ADDR[];// = "tcp://172.16.100.225:41213";
-//"tcp://210.5.151.247:41213"; // 		// 前置地址
-
-
-// Trader配置参数
-extern char  TRADER_FRONT_ADDR[];		     // 前置地址
-extern TThostFtdcBrokerIDType	BROKER_ID;				// 经纪公司代码extern 
-extern TThostFtdcInvestorIDType INVESTOR_ID;			// 投资者代码
-extern TThostFtdcPasswordType  PASSWORD;			// 用户密码
-//***************************************************************
-
- 
-
- extern queue<Msg> MsgQueue;   ///消息队列
+extern queue<Msg> MsgQueue;   ///消息队列
 
 #endif

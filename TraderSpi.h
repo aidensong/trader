@@ -8,10 +8,12 @@
 #include <chrono>
 #include <mutex>
 
-
 class CTraderSpi : public CThostFtdcTraderSpi
 {
-public:
+public:	
+	//构造函数
+	CTraderSpi(CThostFtdcTraderApi* api, CThostFtdcReqUserLoginField req) :pTraderUserApi(api), reqLoginField(req){};
+	
 	///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
 	virtual void OnFrontConnected();
 
@@ -83,8 +85,7 @@ public:
 
 	///报单操作错误回报
 	virtual void OnErrRtnOrderAction(CThostFtdcOrderActionField *pOrderAction, CThostFtdcRspInfoField *pRspInfo);
-
-private:
+public:
 	///用户登录请求
 	void ReqUserLogin();
 	///投资者结算结果确认
@@ -109,7 +110,6 @@ private:
 	void ReqExecOrderAction(CThostFtdcExecOrderField *pExecOrder);
 	///报价操作请求
 	void ReqQuoteAction(CThostFtdcQuoteField *pQuote);
-
 	// 是否收到成功的响应
 	bool IsErrorRspInfo(CThostFtdcRspInfoField *pRspInfo);
 	// 是否我的报单回报
@@ -124,4 +124,9 @@ private:
 	bool IsTradingExecOrder(CThostFtdcExecOrderField *pExecOrder);
 	// 是否未撤销的报价
 	bool IsTradingQuote(CThostFtdcQuoteField *pQuote);
+private:
+
+	CThostFtdcReqUserLoginField reqLoginField;
+
+	CThostFtdcTraderApi* pTraderUserApi;
 };

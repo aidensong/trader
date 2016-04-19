@@ -43,6 +43,16 @@ using namespace std;
 ////合约状态
 //extern map<string, string> InstrumentStatus;
 
+
+TThostFtdcOrderRefType	ORDER_REF;	//报单引用
+TThostFtdcOrderRefType	EXECORDER_REF;	//执行宣告引用
+TThostFtdcOrderRefType	FORQUOTE_REF;	//询价引用
+TThostFtdcOrderRefType	QUOTE_REF;	//报价引用
+
+TThostFtdcFrontIDType	FRONT_ID;	//前置编号
+TThostFtdcSessionIDType	SESSION_ID;	//会话编号
+
+
 // 流控判断
 bool IsFlowControl(int iResult)
 {
@@ -58,12 +68,12 @@ void CTraderSpi::OnFrontConnected()
 
 void CTraderSpi::ReqUserLogin()
 {
-	CThostFtdcReqUserLoginField req;
-	memset(&req, 0, sizeof(req));
-	strcpy(req.BrokerID, BROKER_ID);
-	strcpy(req.UserID, INVESTOR_ID);
-	strcpy(req.Password, PASSWORD);
-	int iResult = pTraderUserApi->ReqUserLogin(&req, ++iRequestID);
+	//CThostFtdcReqUserLoginField req;
+	//memset(&req, 0, sizeof(req));
+	//strcpy(req.BrokerID, BROKER_ID);
+	//strcpy(req.UserID, INVESTOR_ID);
+	//strcpy(req.Password, PASSWORD);
+	int iResult = pTraderUserApi->ReqUserLogin(&reqLoginField, ++iRequestID);
 	cerr << "--->>> 发送用户登录请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
 }
 
@@ -95,10 +105,15 @@ void CTraderSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 void CTraderSpi::ReqSettlementInfoConfirm()
 {
 	CThostFtdcSettlementInfoConfirmField req;
+	
 	memset(&req, 0, sizeof(req));
-	strcpy(req.BrokerID, BROKER_ID);
-	strcpy(req.InvestorID, INVESTOR_ID);
+
+	strcpy(req.BrokerID, reqLoginField.BrokerID);
+	
+	strcpy(req.InvestorID, reqLoginField.UserID);
+	
 	int iResult = pTraderUserApi->ReqSettlementInfoConfirm(&req, ++iRequestID);
+	
 	cerr << "--->>> 投资者结算结果确认: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
 }
 
@@ -147,8 +162,8 @@ void CTraderSpi::ReqQryTradingAccount()
 {
 	CThostFtdcQryTradingAccountField req;
 	memset(&req, 0, sizeof(req));
-	strcpy(req.BrokerID, BROKER_ID);
-	strcpy(req.InvestorID, INVESTOR_ID);
+	strcpy(req.BrokerID, reqLoginField.BrokerID);
+	strcpy(req.InvestorID, reqLoginField.UserID);
 	while (true)
 	{
 		int iResult = pTraderUserApi->ReqQryTradingAccount(&req, ++iRequestID);
@@ -179,8 +194,8 @@ void CTraderSpi::ReqQryInvestorPosition()
 {
 	CThostFtdcQryInvestorPositionField req;
 	memset(&req, 0, sizeof(req));
-	strcpy(req.BrokerID, BROKER_ID);
-	strcpy(req.InvestorID, INVESTOR_ID);
+	strcpy(req.BrokerID, reqLoginField.BrokerID);
+	strcpy(req.InvestorID, reqLoginField.UserID);
 	//strcpy(req.InstrumentID, INSTRUMENT_ID);
 	while (true)
 	{
