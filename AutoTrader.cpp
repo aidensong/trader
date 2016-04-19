@@ -7,7 +7,7 @@ CMdSpi* pMDUserSpi = nullptr;
 CTraderSpi* pTraderUserSpi = nullptr;
 
 
-   ////读取合约配置文件
+///读取合约配置文件
 void  SysInit()
 {
 	//读取配置文件代码
@@ -66,6 +66,8 @@ void  SysInit()
 	}
 	inf.close();
 }
+
+
 
 ///报单线程 双边报价策略
 void CheckOrdersStatus_test()
@@ -147,7 +149,14 @@ void CheckOrdersStatus_test()
 void main(void)
 {	
 	
-	
+	//CTP信息
+	char MD_FRONT_ADDR[] = "tcp://172.16.100.225:41213"; // MD配置参数
+	//"tcp://210.5.151.247:41213"; // 		// 前置地址
+	// Trader配置参数
+	char  TRADER_FRONT_ADDR[] = "tcp://172.16.100.225:41205";	// 前置地址
+	TThostFtdcBrokerIDType	BROKER_ID = ;			// 经纪公司代码
+	TThostFtdcInvestorIDType INVESTOR_ID =;		// 投资者代码
+	TThostFtdcPasswordType  PASSWORD = ;		// 用户密码	
 
     //LOG
 	google::InitGoogleLogging("AutoTrader");  //参数为自己的可执行文件名 		
