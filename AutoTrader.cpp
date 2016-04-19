@@ -209,14 +209,7 @@ void CheckOrdersStatus_test()
 
 void main(void)
 {	
-	//CTP信息
-	char MD_FRONT_ADDR[] = "tcp://172.16.100.225:41213"; // MD配置参数
-	//"tcp://210.5.151.247:41213"; // 		// 前置地址
-	// Trader配置参数
-	char  TRADER_FRONT_ADDR[] = "tcp://172.16.100.225:41205";	// 前置地址
-	TThostFtdcBrokerIDType	BROKER_ID = "7080";			// 经纪公司代码
-	TThostFtdcInvestorIDType INVESTOR_ID = "20104965";		// 投资者代码
-	TThostFtdcPasswordType  PASSWORD = "112288";		// 用户密码	
+	
 	
 
     //LOG
