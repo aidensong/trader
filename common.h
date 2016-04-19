@@ -83,4 +83,11 @@ extern int iNextOrderRef;  ///报单应用编号
 
 extern queue<Msg> MsgQueue;   ///消息队列
 
+extern vector<CThostFtdcOrderField> OrderList;//委托列表
+
+extern vector<CThostFtdcInputOrderField> InputOrderList;//委托录入
+
+extern vector<CThostFtdcInputOrderActionField> InputOrderActionList;//委托操作列表
+
+extern int CheckEnClose(string InstrumentID, TThostFtdcDirectionType Direction);
 #endif

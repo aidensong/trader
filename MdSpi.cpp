@@ -1,39 +1,6 @@
 #include "MdSpi.h"
 #include "common.h"
 
-//using namespace std;
-//
-//extern CThostFtdcMdApi* pMDUserApi;
-//
-//extern TThostFtdcBrokerIDType	BROKER_ID ;				// 经纪公司代码
-//extern TThostFtdcInvestorIDType INVESTOR_ID ;			// 投资者代码
-//extern TThostFtdcPasswordType  PASSWORD ;			// 用户密码
-//
-//extern int iRequestID;
-//
-////合约订阅变量
-//extern  map<string, CThostFtdcDepthMarketDataField> MarketDataField;
-//
-//extern  vector<string> Instrumentlist;  //订阅合约list
-//
-//extern vector<double> StrikePrices;  //订阅合约list
-//
-//extern  std::mutex   g_lockqueue;
-//
-////合约状态
-//extern map<string, string> InstrumentStatus;
-//
-////合约收益
-//extern map<string, int> payoff;
-//
-////买报价
-//extern map<string, int> Bid;
-////卖报价
-//extern map<string, int> Ask;
-//
-////价差
-//extern int spreed ;
-
 
 void CMdSpi::OnRspError(CThostFtdcRspInfoField *pRspInfo,
 		int nRequestID, bool bIsLast)
@@ -90,8 +57,7 @@ void CMdSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 		///获取当前交易日
 		cerr << "--->>> 获取当前交易日 = " << pMDUserApi->GetTradingDay() << endl;
 
-		LOG(INFO) << "--->>> 获取当前交易日 = " << pMDUserApi->GetTradingDay() << endl;
-		
+		LOG(INFO) << "--->>> 获取当前交易日 = " << pMDUserApi->GetTradingDay() << endl;		
 		// 请求订阅行情
 		SubscribeMarketData();	
 		// 请求订阅询价,只能订阅郑商所的询价，其他交易所通过traderapi相应接口返回

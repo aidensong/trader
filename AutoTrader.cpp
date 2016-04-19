@@ -70,23 +70,6 @@ CMdSpi* pMDUserSpi = nullptr;
 CTraderSpi* pTraderUserSpi = nullptr;
 
 
-//注意：当字符串为空时，也会返回一个空字符串  
-void split(std::string& s, std::string& delim, std::vector< std::string >* ret)
-{
-	size_t last = 0;
-	size_t index = s.find_first_of(delim, last);
-	while (index != std::string::npos)
-	{
-		ret->push_back(s.substr(last, index - last));
-		last = index + 1;
-		index = s.find_first_of(delim, last);
-	}
-	if (index - last>0)
-	{
-		ret->push_back(s.substr(last, index - last));
-	}
-}
-
    ////读取合约配置文件
 void  SysInit()
 {
@@ -147,167 +130,6 @@ void  SysInit()
 	inf.close();
 }
 
-///检查可平仓数
-int CheckEnClose(string InstrumentID, TThostFtdcDirectionType Direction)
-{
-	if (Direction == THOST_FTDC_D_Buy)
-		return	ShortEnClose[InstrumentID];
-	else
-		return	LongEnClose[InstrumentID];
-  //
-//		
-//THOST_FTDC_D_Buy 
-//		///卖
-//THOST_FTDC_D_Sell '1'
-}
-////报单
-//void OrderInsert(TThostFtdcPriceType Price, string InstrumentID, TThostFtdcDirectionType Direction)
-//{		
-//				//cerr << MarketDataField["TF1606"].LastPrice << endl;
-//
-//				CThostFtdcInputOrderField req;				
-//
-//				memset(&req, 0, sizeof(req));
-//				///经纪公司代码
-//				strcpy(req.BrokerID, BROKER_ID);
-//				///投资者代码
-//				strcpy(req.InvestorID, INVESTOR_ID);
-//				///合约代码
-//				strcpy(req.InstrumentID, (char*)InstrumentID.data());
-//				
-//				iNextOrderRef++;
-//				
-//				sprintf(ORDER_REF, "%d", iNextOrderRef);
-//				
-//				///报单引用
-//				strcpy(req.OrderRef, ORDER_REF);				
-//				
-//				///用户代码
-//				//	TThostFtdcUserIDType	UserID;
-//				///报单价格条件: 限价
-//				req.OrderPriceType = THOST_FTDC_OPT_LimitPrice;
-//				///买卖方向: 
-//				req.Direction = Direction;			
-//				
-//				if (CheckEnClose(InstrumentID, Direction) > 0)
-//				{///组合开平标志: 开仓
-//					req.CombOffsetFlag[0] = THOST_FTDC_OF_Close;//THOST_FTDC_OF_Open;
-//				}else
-//					///组合开平标志: 平仓
-//					req.CombOffsetFlag[0] = THOST_FTDC_OF_Open;
-//				
-//				
-//				///组合投机套保标志
-//				req.CombHedgeFlag[0] = THOST_FTDC_HF_Speculation;
-//				
-//				///价格
-//				req.LimitPrice = 4000;//Price;
-//				
-//				///数量: 1
-//				req.VolumeTotalOriginal = 1;
-//				///有效期类型: 当日有效
-//				req.TimeCondition = THOST_FTDC_TC_GFD;
-//				///GTD日期
-//				//	TThostFtdcDateType	GTDDate;
-//				///成交量类型: 任何数量
-//				req.VolumeCondition = THOST_FTDC_VC_AV;
-//				///最小成交量: 1
-//				req.MinVolume = 1;
-//				///触发条件: 立即
-//				req.ContingentCondition = THOST_FTDC_CC_Immediately;
-//				///止损价
-//				//	TThostFtdcPriceType	StopPrice;
-//				///强平原因: 非强平
-//				req.ForceCloseReason = THOST_FTDC_FCC_NotForceClose;
-//				///自动挂起标志: 否
-//				req.IsAutoSuspend = 0;
-//				///业务单元
-//				//	TThostFtdcBusinessUnitType	BusinessUnit;
-//				///请求编号
-//				//	TThostFtdcRequestIDType	RequestID;
-//				///用户强评标志: 否
-//				req.UserForceClose = 0;//				
-//				
-//				int iResult = pTraderUserApi->ReqOrderInsert(&req, ++iRequestID);
-//				
-//				
-//			/*	if (Direction == THOST_FTDC_D_Buy)
-//				{
-//					cerr << "--->>> 买入<" << InstrumentID << ">报单|价格：" << Price << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
-//					LOG(INFO) << "--->>> 买入<" << InstrumentID << ">报单|价格：" << Price << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
-//				}
-//				else
-//				{
-//					cerr << "--->>> 卖出<" << InstrumentID << ">报单|价格：" << Price << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
-//					LOG(INFO)<< "--->>> 卖出<" << InstrumentID << ">报单|价格：" << Price << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
-//				
-//				}*/
-//				
-//}
-//
-//
-/////撤单
-//void ReqOrderCancel(string OrderRef, string InstrumentID, TThostFtdcDirectionType Direction, TThostFtdcPriceType Price)
-//{
-//		//static bool ORDER_ACTION_SENT = false;		//是否发送了报单
-//	
-//		//if (ORDER_ACTION_SENT)
-//		//	return;
-//	
-//		CThostFtdcInputOrderActionField req;
-//
-//		memset(&req, 0, sizeof(req));
-//		///经纪公司代码
-//		strcpy(req.BrokerID, BROKER_ID);
-//		///投资者代码
-//		strcpy(req.InvestorID, INVESTOR_ID);
-//		///报单操作引用
-//	//	TThostFtdcOrderActionRefType	OrderActionRef;
-//		///报单引用
-//	    strcpy(req.OrderRef, (char*)OrderRef.data());
-//		///请求编号
-//	//	TThostFtdcRequestIDType	RequestID;
-//		///前置编号
-//		req.FrontID = FRONT_ID;
-//		///会话编号
-//		req.SessionID = SESSION_ID;	
-//		
-//		///交易所代码
-//	//	TThostFtdcExchangeIDType	ExchangeID;
-//		///报单编号
-//	//	TThostFtdcOrderSysIDType	OrderSysID;
-//	
-//		///操作标志
-//		req.ActionFlag = THOST_FTDC_AF_Delete;
-//		
-//		///价格
-//	
-//		//	TThostFtdcPriceType	LimitPrice;
-//		///数量变化
-//	//	TThostFtdcVolumeType	VolumeChange;
-//		///用户代码
-//	//	TThostFtdcUserIDType	UserID;
-//		///合约代码
-//	
-//		strcpy(req.InstrumentID, (char*)InstrumentID.data());
-//		
-//		//int iResult = pTraderUserApi->ReqOrderAction(&req, ++iRequestID);
-//
-//	 
-//		//if (Direction == THOST_FTDC_D_Buy)
-//		//{
-//		//	cerr << "--->>> 买入<" << InstrumentID << ">报单| 价格："<<Price<<" | 报入请求: 取消" << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
-//		//	LOG(INFO) << "--->>> 买入<" << InstrumentID << ">报单 |价格 ：" << Price << " | |报入请求: 取消" << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
-//		//}
-//		//else
-//		//{
-//		//	cerr << "--->>> 卖出<" << InstrumentID << ">报单| 价格：" << Price << " | 报入请求:取消 " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
-//		//	LOG(INFO) << "--->>> 卖出<" << InstrumentID << ">报单| 价格：" << Price << " | 报入请求: 取消" << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
-//
-//		//}///ORDER_ACTION_SENT = true;
-//}
-
-
 ///报单线程 双边报价策略
 void CheckOrdersStatus_test()
 {
@@ -327,7 +149,7 @@ void CheckOrdersStatus_test()
 			
 	           //#define THOST_FTDC_D_Sell 
 
-				//OrderInsert(MarketDataField[InstrumentID].BidPrice1 - spreed / 2, InstrumentID, THOST_FTDC_D_Buy);
+				 pTraderUserSpi->ReqOrderInsert(MarketDataField[InstrumentID].BidPrice1 - spreed / 2, THOST_FTDC_D_Buy, InstrumentID);
 			 //   
 				//OrderInsert(MarketDataField[InstrumentID].AskPrice1 + spreed / 2, InstrumentID, THOST_FTDC_D_Sell);
 				
@@ -387,6 +209,7 @@ void CheckOrdersStatus_test()
 
 void main(void)
 {	
+	//CTP信息
 	char MD_FRONT_ADDR[] = "tcp://172.16.100.225:41213"; // MD配置参数
 	//"tcp://210.5.151.247:41213"; // 		// 前置地址
 	// Trader配置参数
@@ -395,6 +218,8 @@ void main(void)
 	TThostFtdcInvestorIDType INVESTOR_ID = "20104965";		// 投资者代码
 	TThostFtdcPasswordType  PASSWORD = "112288";		// 用户密码	
 	
+
+    //LOG
 	google::InitGoogleLogging("AutoTrader");  //参数为自己的可执行文件名 		
 
 	google::SetLogDestination(google::GLOG_INFO, "./Log/Auto_Info");
@@ -404,6 +229,8 @@ void main(void)
 	
 	SysInit();//初始化全局变量
 
+
+	
 	CThostFtdcReqUserLoginField req;
 	memset(&req, 0, sizeof(CThostFtdcReqUserLoginField));
 	memcpy(req.BrokerID, BROKER_ID, sizeof(TThostFtdcBrokerIDType));
@@ -422,6 +249,7 @@ void main(void)
 	pTraderUserApi->RegisterFront(TRADER_FRONT_ADDR);							// connect
 	pTraderUserApi->Init();
 
+	
 	// 初始化行情UserApi
 	CThostFtdcMdApi* pMDUserApi = CThostFtdcMdApi::CreateFtdcMdApi();			// 创建UserApi
 	

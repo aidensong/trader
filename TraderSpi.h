@@ -7,7 +7,7 @@
 #include <thread> 
 #include <chrono>
 #include <mutex>
-
+using namespace std;
 class CTraderSpi : public CThostFtdcTraderSpi
 {
 public:	
@@ -97,12 +97,12 @@ public:
 	///请求查询投资者持仓
 	void ReqQryInvestorPosition();
 	///报单录入请求
-	void ReqOrderInsert(TThostFtdcDirectionType DIRECTION, TThostFtdcPriceType LIMIT_PRICE);
+	void ReqOrderInsert(TThostFtdcDirectionType DIRECTION, TThostFtdcPriceType LIMIT_PRICE ,string InstrumentID);
 	///执行宣告录入请求
 	void ReqExecOrderInsert();
 	///询价录入请求
-	void ReqForQuoteInsert();
-	///报价录入请求
+	void ReqForQuoteInsert();	
+	//报价录入请求
 	void ReqQuoteInsert();
 	///报单操作请求
 	void ReqOrderAction(CThostFtdcOrderField *pOrder);
