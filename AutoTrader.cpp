@@ -117,7 +117,7 @@ void QuotaStrategy()
 				}
 			}
 			else///没有开始报单
-				AskOrderStatus = THOST_FTDC_OST_AllTraded;
+				BidOrderStatus = THOST_FTDC_OST_AllTraded;
 
 			if ((BidOrderStatus == THOST_FTDC_OST_AllTraded) && (BidOrderStatus == THOST_FTDC_OST_AllTraded))
 			{
