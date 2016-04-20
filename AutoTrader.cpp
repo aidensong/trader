@@ -125,12 +125,13 @@ void QuotaStrategy()
 
 				//#define THOST_FTDC_D_Sell 
 				// int 转 string
+			
 				stringstream ss;
 				pTraderUserSpi->ReqOrderInsert(MarketDataField[InstrumentID].BidPrice1 - spreed / 2, THOST_FTDC_D_Buy, InstrumentID);
 				ss << iNextOrderRef;
 				ss >> BidORDER_REF_present[InstrumentID];
 
-				pTraderUserSpi->ReqOrderInsert(MarketDataField[InstrumentID].BidPrice1 + spreed / 2, THOST_FTDC_D_Sell, InstrumentID);
+				pTraderUserSpi->ReqOrderInsert(MarketDataField[InstrumentID].AskPrice1 + spreed / 2, THOST_FTDC_D_Sell, InstrumentID);
 				ss << iNextOrderRef;
 				ss >> AskORDER_REF_present[InstrumentID];
 
@@ -145,57 +146,60 @@ void QuotaStrategy()
 ///消息处理主线程
 void mProcess()
 {
-	while (!MsgQueue.empty())
+	while (true)
 	{
-		Msg msg;
-		g_lockqueue.lock();
-
-		msg = MsgQueue.front();
-
-		MsgQueue.pop();
-
-		g_lockqueue.unlock();
-		
-		
-		//消息队列处理//
-		switch (msg.Msg_Type)
+		if (!MsgQueue.empty())
 		{
-					// 委托回报
-				case RtnOrder:
-				{
-					g_lockqueue.lock();
-					OrderMap[msg.RtnOrder.OrderRef] = msg.RtnOrder;
-					g_lockqueue.unlock();			
-					break;
-			
-				};
-				// 成交回报
-				case RtnTrade:
-				{
-					g_lockqueue.lock();					
-					TradeList.push_back(msg.RtnTrade);
-					PositionChange(msg.RtnTrade.InstrumentID, msg.RtnTrade.Direction, msg.RtnTrade.OffsetFlag, msg.RtnTrade.Volume);
-					PositionFrozen(msg.RtnTrade.InstrumentID, msg.RtnTrade.Direction, msg.RtnTrade.OffsetFlag, msg.RtnTrade.Volume);
-					g_lockqueue.unlock();				
-					
-					break;
-				};
-				//报单录入
-				case InputOrder:
-				{
-					break;
-		
-				};
-				// 报单操作录入
-				case InputOrderAction:
-				{
-					break;
-				}
-			
-		}		
-		
-		//执行策略
-		QuotaStrategy();
+			Msg msg;
+			g_lockqueue.lock();
+
+			msg = MsgQueue.front();
+
+			MsgQueue.pop();
+
+			g_lockqueue.unlock();
+
+
+			//消息队列处理//
+			switch (msg.Msg_Type)
+			{
+				// 委托回报
+			case RtnOrder:
+			{
+				g_lockqueue.lock();
+				OrderMap[msg.RtnOrder.OrderRef] = msg.RtnOrder;
+				g_lockqueue.unlock();
+				break;
+
+			};
+			// 成交回报
+			case RtnTrade:
+			{
+				g_lockqueue.lock();
+				TradeList.push_back(msg.RtnTrade);
+				PositionChange(msg.RtnTrade.InstrumentID, msg.RtnTrade.Direction, msg.RtnTrade.OffsetFlag, msg.RtnTrade.Volume);
+				PositionFrozen(msg.RtnTrade.InstrumentID, msg.RtnTrade.Direction, msg.RtnTrade.OffsetFlag, msg.RtnTrade.Volume);
+				g_lockqueue.unlock();
+
+				break;
+			};
+			//报单录入
+			case InputOrder:
+			{
+				break;
+
+			};
+			// 报单操作录入
+			case InputOrderAction:
+			{
+				break;
+			}
+
+			}
+
+			//执行策略
+			QuotaStrategy();
+		}
 	}
 }
 
@@ -218,12 +222,10 @@ void main(void)
 
 	google::SetLogDestination(google::GLOG_INFO, "./Log/Auto_Info");
 
-	FLAGS_max_log_size = 50;  //最大日志大小为 100MB
+	FLAGS_max_log_size = 50;  //最大日志大小为 50MB
 
 	
 	SysInit();//初始化全局变量
-
-
 	
 	CThostFtdcReqUserLoginField req;
 	memset(&req, 0, sizeof(CThostFtdcReqUserLoginField));
