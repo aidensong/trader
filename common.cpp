@@ -45,6 +45,9 @@ vector<CThostFtdcInputOrderField> InputOrderList;//委托录入
 
 vector<CThostFtdcInputOrderActionField> InputOrderActionList;//委托操作列表
 
+vector<CThostFtdcInvestorPositionField> InvestorPositionList;//持仓列表
+
+
 //CThostFtdcTradeField  RtnTrade; //成交回报
 
 ///检查可平仓数
