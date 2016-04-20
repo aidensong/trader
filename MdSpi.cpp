@@ -91,7 +91,6 @@ void CMdSpi::SubscribeMarketData()
 
 	//}
 
-
 	//inf.close();
 
 	unsigned int len = Instrumentlist.size();
