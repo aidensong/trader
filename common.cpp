@@ -4,7 +4,7 @@
 
 int iRequestID = 0; // 请求编号
 
-int spreed = 200;
+int spreed = 2;
 
 int iNextOrderRef = 0;  ///报单应用编号
 
