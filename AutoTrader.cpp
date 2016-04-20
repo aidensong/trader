@@ -123,8 +123,7 @@ void QuotaStrategy()
 			{
 				//#define THOST_FTDC_D_Buy 
 
-				//#define THOST_FTDC_D_Sell 
-				// int ת string
+				//#define THOST_FTDC_D_Sell 		
 			
 				stringstream ss;
 				pTraderUserSpi->ReqOrderInsert(MarketDataField[InstrumentID].BidPrice1 - spreed / 2, THOST_FTDC_D_Buy, InstrumentID);
@@ -134,8 +133,6 @@ void QuotaStrategy()
 				pTraderUserSpi->ReqOrderInsert(MarketDataField[InstrumentID].AskPrice1 + spreed / 2, THOST_FTDC_D_Sell, InstrumentID);
 				ss << iNextOrderRef;
 				ss >> AskORDER_REF_present[InstrumentID];
-
-
 
 			}
 
