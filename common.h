@@ -48,32 +48,14 @@ using namespace std;
 
 
 extern int iRequestID; // 请求编号
-
+extern vector<string> Instrumentlist; //订阅合约list
 extern map<string, CThostFtdcDepthMarketDataField> MarketDataField;//合约行情
-
-extern map<string, string> InstrumentStatus;//合约状态
 
 extern map<string, double> payoff; //合约收益
 
-extern map<string, double> Bid;//买报价
+extern map<string, string> BidORDER_REF_present;//买报价引用
 
-extern map<string, double> Ask;//卖报价
-
-extern map<string, int> LongPosition; //买持仓
-
-extern map<string, int> ShortPosition;//卖持仓
-
-extern map<string, int> LongEnClose; //买持可平仓量
-
-extern map<string, int> ShortEnClose;//卖持可平仓量extern extern 
-
-extern map<string, string> BidORDER_REF;//买报价引用
-
-extern map<string, string> AskORDER_REF;//卖报价引用
-
-extern vector<string> Instrumentlist; //订阅合约list
-
-extern vector<double> StrikePrices;  //行权价list
+extern map<string, string> AskORDER_REF_present;//卖报价引用
 
 extern std::mutex   g_lockqueue;
 
@@ -83,7 +65,7 @@ extern int iNextOrderRef;  ///报单应用编号
 
 extern queue<Msg> MsgQueue;   ///消息队列
 
-extern vector<CThostFtdcOrderField> OrderList;//委托列表
+extern map<string, CThostFtdcOrderField> OrderMap;//委托列表
 
 extern vector<CThostFtdcInputOrderField> InputOrderList;//委托录入
 
@@ -91,5 +73,12 @@ extern vector<CThostFtdcInputOrderActionField> InputOrderActionList;//委托操作列
 
 extern vector<CThostFtdcInvestorPositionField> InvestorPositionList;//持仓列表
 
+extern vector<CThostFtdcTradeField> TradeList; //成交列表;
+
 extern int CheckEnClose(string InstrumentID, TThostFtdcDirectionType Direction);
+
+extern void PositionFrozen(string InstrumentID, TThostFtdcDirectionType Direction, TThostFtdcOffsetFlagType OffsetFlag, int Volume);
+
+extern void PositionChange(string InstrumentID, TThostFtdcDirectionType Direction, TThostFtdcOffsetFlagType OffsetFlag, int Volume);
+
 #endif

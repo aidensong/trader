@@ -31,34 +31,16 @@ void  SysInit()
 		DepthMarketData.BidPrice1 = -1;
 
 		//创建对应的map key
-		MarketDataField.insert(map<string, CThostFtdcDepthMarketDataField>::value_type(s, DepthMarketData));
-
-		InstrumentStatus.insert(map<string, string>::value_type(s, "NONE"));	
+		MarketDataField.insert(map<string, CThostFtdcDepthMarketDataField>::value_type(s, DepthMarketData));	
 		
 		payoff.insert(map<string, int>::value_type(s, 0));
 		
-		//买报价
-		Bid.insert(map<string, int>::value_type(s, 0));
-		//卖报价
-		Ask.insert(map<string, int>::value_type(s, 0));		
-		
 		//买报价引用
-		BidORDER_REF.insert(map<string, string>::value_type(s, ""));
+		BidORDER_REF_present.insert(map<string, string>::value_type(s, ""));
 		
 		//卖报价引用
-		AskORDER_REF.insert(map<string, string>::value_type(s, ""));
-		
-		//买持仓可平仓量
-		LongEnClose.insert(map<string, int>::value_type(s, 0));
-
-		//卖持仓可平仓量
-		ShortEnClose.insert(map<string, int>::value_type(s, 0));
-
-		//买持仓可平仓量
-		LongPosition.insert(map<string, int>::value_type(s, 0));
-
-		//卖持仓可平仓量
-		ShortPosition.insert(map<string, int>::value_type(s, 0));
+		AskORDER_REF_present.insert(map<string, string>::value_type(s, ""));
+	
 
 		//if (s.length()>6)
 		//	s.substr(8, 4);
@@ -67,84 +49,162 @@ void  SysInit()
 	inf.close();
 }
 
-
-
 ///报单线程 双边报价策略
-void CheckOrdersStatus_test()
+void QuotaStrategy()
 {
-	while (true)
+
+	//	///TFtdcOrderStatusType是一个报单状态类型
+	//	/////////////////////////////////////////////////////////////////////////
+	//	///全部成交
+	//#define THOST_FTDC_OST_AllTraded '0'
+	//	///部分成交还在队列中
+	//#define THOST_FTDC_OST_PartTradedQueueing '1'
+	//	///部分成交不在队列中
+	//#define THOST_FTDC_OST_PartTradedNotQueueing '2'
+	//	///未成交还在队列中
+	//#define THOST_FTDC_OST_NoTradeQueueing '3'
+	//	///未成交不在队列中
+	//#define THOST_FTDC_OST_NoTradeNotQueueing '4'
+	//	///撤单
+	//#define THOST_FTDC_OST_Canceled '5'
+	//	///未知
+	//#define THOST_FTDC_OST_Unknown 'a'
+	//	///尚未触发
+	//#define THOST_FTDC_OST_NotTouched 'b'
+	//	///已触发
+	//#define THOST_FTDC_OST_Touched 'c'
+	//
+	//	typedef char TThostFtdcOrderStatusType;
+
+
+	//市场存在买卖报价	
+	for (string InstrumentID : Instrumentlist)
 	{
-		for (string InstrumentID : Instrumentlist)
+		TThostFtdcOrderStatusType AskOrderStatus;
+		TThostFtdcOrderStatusType BidOrderStatus;
+		//入场
+		if (MarketDataField[InstrumentID].BidPrice1 > 0 && MarketDataField[InstrumentID].AskPrice1 > 0)
 		{
-		
-			//入场
-		
-			if ((InstrumentStatus[InstrumentID] == "NONE") && (MarketDataField[InstrumentID].BidPrice1 > 0)
-				&& (MarketDataField[InstrumentID].AskPrice1 > 0) 
-				&& (MarketDataField[InstrumentID].AskPrice1 > MarketDataField[InstrumentID].BidPrice1))
+			//卖委托
+			if (AskORDER_REF_present[InstrumentID] != "")
 			{
-	           
-			   //#define THOST_FTDC_D_Buy 
-			
-	           //#define THOST_FTDC_D_Sell 
+				map<string, CThostFtdcOrderField>::iterator it = OrderMap.find(AskORDER_REF_present[InstrumentID]);
 
-				 pTraderUserSpi->ReqOrderInsert(MarketDataField[InstrumentID].BidPrice1 - spreed / 2, THOST_FTDC_D_Buy, InstrumentID);
-			 //   
-				//OrderInsert(MarketDataField[InstrumentID].AskPrice1 + spreed / 2, InstrumentID, THOST_FTDC_D_Sell);
-				
-				//买报价
-				Bid[InstrumentID] = MarketDataField[InstrumentID].BidPrice1 - spreed/2;
-				//卖报价				
-				Ask[InstrumentID] = MarketDataField[InstrumentID].AskPrice1 + spreed/2;
-
-				InstrumentStatus[InstrumentID]="ALLNOT";	
-
-				cerr << "OnRtnTrade | 合约: <" << InstrumentID << "> | Status : " << InstrumentStatus[InstrumentID] << endl;
-				LOG(INFO) << "OnRtnTrade | 合约: <" << InstrumentID << "> | Status : " << InstrumentStatus[InstrumentID] << endl;
-			   
+				if (it != OrderMap.end())
+				{
+					AskOrderStatus = it->second.OrderStatus;
+				}
+				else
+				{    ///委托被CTP退回
+					AskOrderStatus = 'e';
+				}
 			}
-			if ((InstrumentStatus[InstrumentID] == "ASK") && (MarketDataField[InstrumentID].BidPrice1 > 0)
-				&& (MarketDataField[InstrumentID].AskPrice1 > 0) && (MarketDataField[InstrumentID].AskPrice1 > MarketDataField[InstrumentID].BidPrice1))
-			{	
-				
-			/*	ReqOrderCancel(BidORDER_REF[InstrumentID], InstrumentID, THOST_FTDC_D_Buy, Bid[InstrumentID]);	*/			
-				//买报价
-				Bid[InstrumentID] = Bid[InstrumentID] + spreed / 2;					
-				
-			/*	OrderInsert(Bid[InstrumentID], InstrumentID, THOST_FTDC_D_Buy);		*/	
-				
-				InstrumentStatus[InstrumentID] = "BID_Change";
-				
-				cerr << "Thread| 合约: <" << InstrumentID << "> | Status : " << InstrumentStatus[InstrumentID] << endl;
-				
-				LOG(INFO) << "Thread | 合约: <" << InstrumentID << "> | Status : " << InstrumentStatus[InstrumentID] << endl;			
+			else///没有开始报单
+				AskOrderStatus = THOST_FTDC_OST_AllTraded;
 
+			//买委托
+			if (BidORDER_REF_present[InstrumentID] != "")
+			{
+				map<string, CThostFtdcOrderField>::iterator it = OrderMap.find(BidORDER_REF_present[InstrumentID]);
+
+				if (it != OrderMap.end())
+				{
+					BidOrderStatus = it->second.OrderStatus;
+				}
+				else
+				{    ///委托被CTP退回
+					BidOrderStatus = 'e';
+				}
 			}
-		
+			else///没有开始报单
+				AskOrderStatus = THOST_FTDC_OST_AllTraded;
 
-			if ((InstrumentStatus[InstrumentID] == "BID") && (MarketDataField[InstrumentID].BidPrice1 > 0)
-				&& (MarketDataField[InstrumentID].AskPrice1 > 0) && (MarketDataField[InstrumentID].AskPrice1 > MarketDataField[InstrumentID].BidPrice1))
-			{		
-				
-				
-		/*		ReqOrderCancel(AskORDER_REF[InstrumentID], InstrumentID, THOST_FTDC_D_Sell,Ask[InstrumentID]);*/
-								 
-				 //买报价
-			     
-				Ask[InstrumentID] = Ask[InstrumentID] - spreed / 2;
 
-				InstrumentStatus[InstrumentID] = "ASK_Change";
-				
-		/*		OrderInsert(Ask[InstrumentID], InstrumentID, THOST_FTDC_D_Sell);*/
 
-				cerr << "Thread| 合约: <" << InstrumentID << "> | Status : " << InstrumentStatus[InstrumentID] << endl;
-				LOG(INFO) << "Thread | 合约: <" << InstrumentID << "> | Status : " << InstrumentStatus[InstrumentID] << endl;
+
+			if ((BidOrderStatus == THOST_FTDC_OST_AllTraded) && (BidOrderStatus == THOST_FTDC_OST_AllTraded))
+
+			{
+
+				//#define THOST_FTDC_D_Buy 
+
+				//#define THOST_FTDC_D_Sell 
+				// int 转 string
+				stringstream ss;
+				pTraderUserSpi->ReqOrderInsert(MarketDataField[InstrumentID].BidPrice1 - spreed / 2, THOST_FTDC_D_Buy, InstrumentID);
+				ss << iNextOrderRef;
+				ss >> BidORDER_REF_present[InstrumentID];
+
+				pTraderUserSpi->ReqOrderInsert(MarketDataField[InstrumentID].BidPrice1 + spreed / 2, THOST_FTDC_D_Sell, InstrumentID);
+				ss << iNextOrderRef;
+				ss >> AskORDER_REF_present[InstrumentID];
+
+
 
 			}
-		
+
 		}
 	}
 }
+
+///消息处理主线程
+void mProcess()
+{
+	while (!MsgQueue.empty())
+	{
+		Msg msg;
+		g_lockqueue.lock();
+
+		msg = MsgQueue.front();
+
+		MsgQueue.pop();
+
+		g_lockqueue.unlock();
+		
+		
+		//消息队列处理//
+		switch (msg.Msg_Type)
+		{
+					// 委托回报
+				case RtnOrder:
+				{
+					g_lockqueue.lock();
+					OrderMap[msg.RtnOrder.OrderRef] = msg.RtnOrder;
+					g_lockqueue.unlock();			
+					break;
+			
+				};
+				// 成交回报
+				case RtnTrade:
+				{
+					g_lockqueue.lock();					
+					TradeList.push_back(msg.RtnTrade);
+					PositionChange(msg.RtnTrade.InstrumentID, msg.RtnTrade.Direction, msg.RtnTrade.OffsetFlag, msg.RtnTrade.Volume);
+					PositionFrozen(msg.RtnTrade.InstrumentID, msg.RtnTrade.Direction, msg.RtnTrade.OffsetFlag, msg.RtnTrade.Volume);
+					g_lockqueue.unlock();				
+					
+					break;
+				};
+				//报单录入
+				case InputOrder:
+				{
+					break;
+		
+				};
+				// 报单操作录入
+				case InputOrderAction:
+				{
+					break;
+				}
+			
+		}		
+		
+		//执行策略
+		QuotaStrategy();
+	}
+}
+
+
 
 void main(void)
 {	
@@ -154,9 +214,9 @@ void main(void)
 	//"tcp://210.5.151.247:41213"; // 		// 前置地址
 	// Trader配置参数
 	char  TRADER_FRONT_ADDR[] = "tcp://172.16.100.225:41205";	// 前置地址
-	TThostFtdcBrokerIDType	BROKER_ID = ;			// 经纪公司代码
-	TThostFtdcInvestorIDType INVESTOR_ID =;		// 投资者代码
-	TThostFtdcPasswordType  PASSWORD = ;		// 用户密码	
+	TThostFtdcBrokerIDType	BROKER_ID ="7080" ;			// 经纪公司代码
+	TThostFtdcInvestorIDType INVESTOR_ID ="20104965";		// 投资者代码
+	TThostFtdcPasswordType  PASSWORD = "112288";		// 用户密码	
 
     //LOG
 	google::InitGoogleLogging("AutoTrader");  //参数为自己的可执行文件名 		
@@ -203,7 +263,7 @@ void main(void)
 	
 		
 	//自动报单线程	
-	std::thread th(CheckOrdersStatus_test);
+	std::thread th(mProcess);
 	
 	th.join();
 

@@ -5,53 +5,14 @@
 #pragma warning(disable : 4996)
 using namespace std;
 
-//extern CThostFtdcTraderApi* pTraderUserApi;
-//
-//extern TThostFtdcBrokerIDType	BROKER_ID ;				// 经纪公司代码
-//extern TThostFtdcInvestorIDType INVESTOR_ID ;			// 投资者代码
-//extern TThostFtdcPasswordType  PASSWORD;			// 用户密码
-//
-//extern int iRequestID;
-//
-//// 会话参数
-//
-//extern TThostFtdcOrderRefType	ORDER_REF;	//报单引用
-//extern TThostFtdcOrderRefType	EXECORDER_REF;	//执行宣告引用
-//extern TThostFtdcOrderRefType	FORQUOTE_REF;	//询价引用
-//extern TThostFtdcOrderRefType	QUOTE_REF;	//报价引用
-//
-//extern TThostFtdcFrontIDType	FRONT_ID;	//前置编号
-//extern TThostFtdcSessionIDType	SESSION_ID;	//会话编号
-//
-////extern map<string,int> InstrumentStatus; 
-//
-//extern int iNextOrderRef;
-//
-////买报价引用
-//extern map<string, string> BidORDER_REF;
-////卖报价引用
-//extern map<string, string> AskORDER_REF;
-//
-//extern map<string, int> LongPosition; //买持仓
-//
-//extern map<string, int> ShortPosition;//卖持仓
-//
-//extern map<string, int> LongEnClose; //买持可平仓量
-//
-//extern map<string, int> ShortEnClose;//卖持可平仓量
-//
-////合约状态
-//extern map<string, string> InstrumentStatus;
 
 
 TThostFtdcOrderRefType	ORDER_REF;	//报单引用
 TThostFtdcOrderRefType	EXECORDER_REF;	//执行宣告引用
 TThostFtdcOrderRefType	FORQUOTE_REF;	//询价引用
 TThostFtdcOrderRefType	QUOTE_REF;	//报价引用
-
 TThostFtdcFrontIDType	FRONT_ID;	//前置编号
 TThostFtdcSessionIDType	SESSION_ID;	//会话编号
-
 
 // 流控判断
 bool IsFlowControl(int iResult)
@@ -220,7 +181,7 @@ void CTraderSpi::OnRspQryOrder(CThostFtdcOrderField *pOrder, CThostFtdcRspInfoFi
 	{  
 		//更新委托列表
 		g_lockqueue.lock();
-		OrderList.push_back(*pOrder);
+		OrderMap[pOrder->OrderRef] = *pOrder;
 		g_lockqueue.unlock();
 	}
 }

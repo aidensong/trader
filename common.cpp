@@ -10,57 +10,196 @@ int iNextOrderRef = 0;  ///报单应用编号
 
 map<string, CThostFtdcDepthMarketDataField> MarketDataField;//合约行情
 
-map<string, string> InstrumentStatus;//合约状态
-
 map<string, double> payoff; //合约收益
 
-map<string, double> Bid;//买报价
+map<string, string> BidORDER_REF_present;//买报价引用
 
-map<string, double> Ask;//卖报价
-
-map<string, int> LongPosition; //买持仓
-
-map<string, int> ShortPosition;//卖持仓
-
-map<string, int> LongEnClose; //买持可平仓量
-
-map<string, int> ShortEnClose;//卖持可平仓量
-
-map<string, string> BidORDER_REF;//买报价引用
-
-map<string, string> AskORDER_REF;//卖报价引用
+map<string, string> AskORDER_REF_present;//卖报价引用
 
 vector<string> Instrumentlist; //订阅合约list
-
-vector<double> StrikePrices;  //行权价list
 
 std::mutex   g_lockqueue;//线程互斥量
 
 queue<Msg> MsgQueue;   ///消息队列
 
-
-vector<CThostFtdcOrderField> OrderList;//委托列表
+map<string,CThostFtdcOrderField> OrderMap;//委托列表
 
 vector<CThostFtdcInputOrderField> InputOrderList;//委托录入
+
+vector<CThostFtdcTradeField> TradeList; //成交列表;
 
 vector<CThostFtdcInputOrderActionField> InputOrderActionList;//委托操作列表
 
 vector<CThostFtdcInvestorPositionField> InvestorPositionList;//持仓列表
 
-
-//CThostFtdcTradeField  RtnTrade; //成交回报
-
 ///检查可平仓数
 int CheckEnClose(string InstrumentID, TThostFtdcDirectionType Direction)
 {
+	bool isLong;
+	TThostFtdcPosiDirectionType PosiDirectionType;
+
 	if (Direction == THOST_FTDC_D_Buy)
-		return	ShortEnClose[InstrumentID];
+	{
+		PosiDirectionType = THOST_FTDC_PD_Long;
+		isLong = true;
+	}
 	else
-		return	LongEnClose[InstrumentID];
-	//THOST_FTDC_D_Buy 
-	//		///卖
-	//THOST_FTDC_D_Sell '1'
+	{
+		PosiDirectionType = THOST_FTDC_PD_Short;
+		isLong = false;
+
+	}
+	for (CThostFtdcInvestorPositionField InvestorPosition : InvestorPositionList)
+	{
+		if ((InvestorPosition.PosiDirection == PosiDirectionType)
+			&& (strcmp(InvestorPosition.InstrumentID,InstrumentID.c_str())==0))
+		{
+			return (isLong ? InvestorPosition.LongFrozen : InvestorPosition.ShortFrozen);
+		}
+	}
+	return 0;
 }
+
+//持仓更改
+void PositionChange(string InstrumentID, TThostFtdcDirectionType Direction, TThostFtdcOffsetFlagType OffsetFlag, int Volume)
+{
+
+	TThostFtdcPosiDirectionType PosiDirectionType;
+	//开仓
+	if (OffsetFlag == THOST_FTDC_OF_Open)
+	{
+		if (Direction == THOST_FTDC_D_Buy)
+		{
+			PosiDirectionType = THOST_FTDC_PD_Long;
+		}
+		else
+		{
+			PosiDirectionType = THOST_FTDC_PD_Short;
+
+		}
+		for (CThostFtdcInvestorPositionField InvestorPosition : InvestorPositionList)
+		{
+			if ((InvestorPosition.PosiDirection == PosiDirectionType)
+				&& (strcmp(InvestorPosition.InstrumentID, InstrumentID.c_str()) == 0))
+			{
+				InvestorPosition.Position += Volume;
+			}
+		}
+	} //平仓
+	else
+	{
+		if (Direction == THOST_FTDC_D_Buy)
+		{
+			PosiDirectionType = THOST_FTDC_PD_Short;
+		}
+		else
+		{
+			PosiDirectionType = THOST_FTDC_PD_Long;
+
+		}
+		for (CThostFtdcInvestorPositionField InvestorPosition : InvestorPositionList)
+		{
+			if ((InvestorPosition.PosiDirection == PosiDirectionType)
+				&& (strcmp(InvestorPosition.InstrumentID, InstrumentID.c_str()) == 0))
+			{
+				InvestorPosition.Position -= Volume;
+			}
+		}
+	}
+}
+
+//持仓冻结
+void PositionFrozen(string InstrumentID, TThostFtdcDirectionType Direction, TThostFtdcOffsetFlagType OffsetFlag, int Volume)
+{
+	
+	
+	bool isLong;
+	TThostFtdcPosiDirectionType PosiDirectionType;
+	
+	if (OffsetFlag == THOST_FTDC_OF_Open)
+	{
+		if (Direction == THOST_FTDC_D_Buy)
+		{
+			PosiDirectionType = THOST_FTDC_PD_Long;
+			isLong = true;
+		}
+		else
+		{
+			PosiDirectionType = THOST_FTDC_PD_Short;
+			isLong = false;
+
+		}
+		for (CThostFtdcInvestorPositionField InvestorPosition : InvestorPositionList)
+		{
+			if ((InvestorPosition.PosiDirection == PosiDirectionType)
+				&& (strcmp(InvestorPosition.InstrumentID, InstrumentID.c_str()) == 0))
+			{
+				if (isLong)
+					InvestorPosition.LongFrozen += Volume;
+				else
+					InvestorPosition.ShortFrozen += Volume;
+			}
+		}
+	}
+	else //平仓
+	{
+		if (Direction == THOST_FTDC_D_Buy)
+		{
+			PosiDirectionType = THOST_FTDC_PD_Short;
+			isLong = false;
+		}
+		else
+		{
+			PosiDirectionType = THOST_FTDC_PD_Long ;
+			isLong = true;
+
+		}
+		for (CThostFtdcInvestorPositionField InvestorPosition : InvestorPositionList)
+		{
+			if ((InvestorPosition.PosiDirection == PosiDirectionType)
+				&& (strcmp(InvestorPosition.InstrumentID, InstrumentID.c_str()) == 0))
+			{
+				if (isLong)
+					InvestorPosition.LongFrozen -= Volume;
+				else
+					InvestorPosition.ShortFrozen -= Volume;
+			}
+		}
+	}
+}
+
+
+//委托状态查询
+void OrderCheck(string InstrumentID, TThostFtdcDirectionType Direction, int Volume)
+{
+	bool isLong;
+	TThostFtdcPosiDirectionType PosiDirectionType;
+	if (Direction == THOST_FTDC_D_Buy)
+	{
+		PosiDirectionType = THOST_FTDC_PD_Long;
+		isLong = true;
+	}
+	else
+	{
+		PosiDirectionType = THOST_FTDC_PD_Short;
+		isLong = false;
+
+	}
+	for (CThostFtdcInvestorPositionField InvestorPosition : InvestorPositionList)
+	{
+		if ((InvestorPosition.PosiDirection == PosiDirectionType)
+			&& (strcmp(InvestorPosition.InstrumentID, InstrumentID.c_str()) == 0))
+		{
+			if (isLong)
+				InvestorPosition.LongFrozen += Volume;
+			else
+				InvestorPosition.ShortFrozen += Volume;
+		}
+	}
+}
+
+
+
 
 //注意：当字符串为空时，也会返回一个空字符串  
 void split(std::string& s, std::string& delim, std::vector< std::string >* ret)
