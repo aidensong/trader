@@ -89,5 +89,7 @@ extern vector<CThostFtdcInputOrderField> InputOrderList;//委托录入
 
 extern vector<CThostFtdcInputOrderActionField> InputOrderActionList;//委托操作列表
 
+extern vector<CThostFtdcInvestorPositionField> InvestorPositionList;//持仓列表
+
 extern int CheckEnClose(string InstrumentID, TThostFtdcDirectionType Direction);
 #endif

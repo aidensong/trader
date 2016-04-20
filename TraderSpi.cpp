@@ -77,8 +77,7 @@ void CTraderSpi::ReqUserLogin()
 	cerr << "--->>> 发送用户登录请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
 }
 
-void CTraderSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
-		CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+void CTraderSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
 	cerr << "--->>> " << "OnRspUserLogin" << endl;
 	if (bIsLast && !IsErrorRspInfo(pRspInfo))
@@ -123,7 +122,7 @@ void CTraderSpi::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField
 	if (bIsLast && !IsErrorRspInfo(pRspInfo))
 	{
 		///请求查询合约
-		//ReqQryInstrument();
+		ReqQryTradingAccount();
 	}
 }
 
@@ -186,7 +185,43 @@ void CTraderSpi::OnRspQryTradingAccount(CThostFtdcTradingAccountField *pTradingA
 	if (bIsLast && !IsErrorRspInfo(pRspInfo))
 	{
 		///请求查询投资者持仓
-		//ReqQryInvestorPosition();
+		ReqQryInvestorPosition();
+		///请求查询委托
+		ReqQryOrder();
+
+	}
+}
+
+void CTraderSpi::ReqQryOrder()
+{
+	CThostFtdcQryOrderField req;
+	memset(&req, 0, sizeof(req));
+	strcpy(req.BrokerID, reqLoginField.BrokerID);
+	strcpy(req.InvestorID, reqLoginField.UserID);
+	while (true)
+	{
+		int iResult = pTraderUserApi->ReqQryOrder(&req, ++iRequestID);
+		if (!IsFlowControl(iResult))
+		{
+			cerr << "--->>> 请求查询委托: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
+			break;
+		}
+		else
+		{
+			cerr << "--->>> 请求查询委托: " << iResult << ", 受到流控" << endl;
+			Sleep(1000);
+		}
+	} // while
+}
+void CTraderSpi::OnRspQryOrder(CThostFtdcOrderField *pOrder, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+	cerr << "--->>> " << "OnRspQryOrder" << endl;
+	if (bIsLast && !IsErrorRspInfo(pRspInfo))
+	{  
+		//更新委托列表
+		g_lockqueue.lock();
+		OrderList.push_back(*pOrder);
+		g_lockqueue.unlock();
 	}
 }
 
@@ -218,14 +253,10 @@ void CTraderSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInve
 	cerr << "--->>> " << "OnRspQryInvestorPosition" << endl;
 	if (bIsLast && !IsErrorRspInfo(pRspInfo))
 	{
-		///报单录入请求
-		//ReqOrderInsert();
-		//执行宣告录入请求
-		//ReqExecOrderInsert();
-		//询价录入
-		//ReqForQuoteInsert();
-		//做市商报价录入
-		//ReqQuoteInsert();
+		//更新持仓列表
+		g_lockqueue.lock();
+		InvestorPositionList.push_back(*pInvestorPosition);
+		g_lockqueue.unlock();
 	}
 }
 
@@ -318,9 +349,23 @@ void CTraderSpi::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder, CThost
 
 	IsErrorRspInfo(pRspInfo);
 
+	Msg MsgOrderInsert;
+
+	//MsgType Type = RtnTrade;
+
+	MsgOrderInsert.Msg_Type = InputOrder;
+
+	MsgOrderInsert.InputOrder = *pInputOrder;
+
+	MsgOrderInsert.RspInfo = *pRspInfo;
+
+	g_lockqueue.lock();
+
+	MsgQueue.push(MsgOrderInsert);
+
+	g_lockqueue.unlock();
 
 }
-
 
 void CTraderSpi::ReqOrderAction(CThostFtdcOrderField *pOrder)
 {
@@ -388,6 +433,22 @@ void CTraderSpi::OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAc
 	//如果通过CTP验证，撤单请求正确，则不会进入该回调，
 	cerr << "--->>> " << "OnRspOrderAction" << endl;
 	IsErrorRspInfo(pRspInfo);
+
+	Msg MsgInputOrderAction;
+
+	//MsgType Type = RtnTrade;
+
+	MsgInputOrderAction.Msg_Type = InputOrderAction;
+
+	MsgInputOrderAction.InputOrderAction = *pInputOrderAction;
+
+	MsgInputOrderAction.RspInfo = *pRspInfo;
+
+	g_lockqueue.lock();
+
+	MsgQueue.push(MsgInputOrderAction);
+
+	g_lockqueue.unlock();
 }
 
 ///  成交通知（AVAILABLE） 
@@ -512,6 +573,22 @@ void CTraderSpi::OnRtnTrade(CThostFtdcTradeField *pTrade)
 ///报单通知 AVAILABLE
 void CTraderSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
 {
+	
+	Msg MsgOrder;
+
+	//MsgType Type = RtnTrade;
+
+	MsgOrder.Msg_Type = RtnOrder;
+
+	MsgOrder.RtnOrder = *pOrder;
+
+	g_lockqueue.lock();
+
+	MsgQueue.push(MsgOrder);
+
+	g_lockqueue.unlock();
+	
+	
 	//	/////////////////////////////////////////////////////////////////////////
 	//	///TFtdcOrderStatusType是一个报单状态类型
 	//	/////////////////////////////////////////////////////////////////////////
@@ -533,106 +610,96 @@ void CTraderSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
 	//#define THOST_FTDC_OST_NotTouched 'b'
 	//	///已触发
 	//#define THOST_FTDC_OST_Touched 'c'
-
 	//typedef char TThostFtdcOrderStatusType;	
 	//	///报单已经提交	
 	//cerr << " OnRtnOrder |合约：<" << pOrder->InstrumentID << "> | 方向 ：" << isOpen << "买入  报单状态 ：报单已提交" << endl;
+	//string isOpen = "";
+	///OrderStatus状态修改为成交前会先再次调用，会再次修改可平仓，//当OrderStatus状态修改为成交修改为成交后，应该将可平仓数复原
+	//if (pOrder->OrderStatus == THOST_FTDC_OST_NoTradeQueueing)
+	//	//&& (pOrder->OrderSubmitStatus != THOST_FTDC_OSS_Accepted))
+	//{
+	//	if (pOrder->Direction == THOST_FTDC_D_Buy)
+	//	{
+	//		BidORDER_REF[pOrder->InstrumentID] = pOrder->OrderRef;
+	//		if (pOrder->CombOffsetFlag[0] != THOST_FTDC_OF_Open)
+	//		{
+	//			ShortEnClose[pOrder->InstrumentID]--;
+	//			isOpen = "平仓";
+	//		}
+	//		cerr << " OnRtnOrder |合约：<" << pOrder->InstrumentID << "> | 方向 ：" << isOpen << "买入  报单状态 ：报单已提交" << endl;
+	//		LOG(INFO) << " OnRtnOrder |合约：<" << pOrder->InstrumentID << "> | 方向 ：" << isOpen << "买入  报单状态 ：报单已提交" << endl;
+	//		cerr << "OnRtnOrder | 合约: <" << pOrder->InstrumentID << "> | 卖持可用 : " << ShortEnClose[pOrder->InstrumentID] << endl;
+	//		LOG(INFO) << "OnRtnOrder | 合约: <" << pOrder->InstrumentID << "> | 卖持可用 : " << ShortEnClose[pOrder->InstrumentID] << endl;
+	//	}
+	//	if (pOrder->Direction == THOST_FTDC_D_Sell)
+	//	{
+	//		string isOpen = "";
+	//		AskORDER_REF[pOrder->InstrumentID] = pOrder->OrderRef;
+	//		if (pOrder->CombOffsetFlag[0] != THOST_FTDC_OF_Open)
+	//		{
+	//			LongEnClose[pOrder->InstrumentID]--;
+	//		}
+	//		cerr << " OnRtnOrder |合约：<" << pOrder->InstrumentID << "> | 方向 ：" << isOpen << "卖出  报单状态 ：报单已提交" << endl;
+	//		LOG(INFO) << " OnRtnOrder |合约：<" << pOrder->InstrumentID << "> | 方向 ：" << isOpen << "卖出  报单状态 ：报单已提交" << endl;
+	//		cerr << "OnRtnOrder | 合约: <" << pOrder->InstrumentID << "> | 买持可用 : " << ShortEnClose[pOrder->InstrumentID] << endl;
+	//		LOG(INFO) << "OnRtnOrder | 合约: <" << pOrder->InstrumentID << "> | 买持可用 : " << ShortEnClose[pOrder->InstrumentID] << endl;
+	//	}
+	//}
+	////报单成交，更正错误修改的可平仓数
+	//if (pOrder->OrderStatus == THOST_FTDC_OST_AllTraded)
+	//	//&& (pOrder->OrderSubmitStatus != THOST_FTDC_OSS_Accepted))
+	//{
+	//	if (pOrder->Direction == THOST_FTDC_D_Buy)
+	//	{
+	//		//BidORDER_REF[pOrder->InstrumentID] = pOrder->OrderRef;
+	//		if (pOrder->CombOffsetFlag[0] != THOST_FTDC_OF_Open)
+	//		{
+	//			ShortEnClose[pOrder->InstrumentID]++;
+	//		}
+	//	}
+	//	if (pOrder->Direction == THOST_FTDC_D_Sell)
+	//	{
+	//		//	string isOpen = "";
+	//		//AskORDER_REF[pOrder->InstrumentID] = pOrder->OrderRef;
+	//		if (pOrder->CombOffsetFlag[0] != THOST_FTDC_OF_Open)
+	//		{
+	//			LongEnClose[pOrder->InstrumentID]++;
+	//		}
+	//	}
+	//}
+	//////
+	/////撤单提交
+	//if (pOrder->OrderStatus == THOST_FTDC_OST_Canceled)
+	//{
+	//	if (pOrder->Direction == THOST_FTDC_D_Buy)
+	//	{
+	//		BidORDER_REF[pOrder->InstrumentID] = pOrder->OrderRef;
+	//		if (pOrder->CombOffsetFlag[0] != THOST_FTDC_OF_Open)
+	//		{
+	//			ShortEnClose[pOrder->InstrumentID]++;
+	//		}
+	//		cerr << " OnRtnOrder |合约：<" << pOrder->InstrumentID << "> | 方向 ：" << isOpen << "买入  撤单状态 ：报单已提交" << endl;
+	//		LOG(INFO) << " OnRtnOrder |合约：<" << pOrder->InstrumentID << "> | 方向 ：" << isOpen << "买入  撤单状态 ：报单已提交" << endl;
+	//		cerr << "OnRtnOrder | 合约: <" << pOrder->InstrumentID << "> | 卖持可用 : " << ShortEnClose[pOrder->InstrumentID] << endl;
+	//		LOG(INFO) << "OnRtnOrder | 合约: <" << pOrder->InstrumentID << "> | 卖持可用 : " << ShortEnClose[pOrder->InstrumentID] << endl;
+	//	}
+	//	if (pOrder->Direction == THOST_FTDC_D_Sell)
+	//	{
+	//		AskORDER_REF[pOrder->InstrumentID] = pOrder->OrderRef;
+	//		if (pOrder->CombOffsetFlag[0] != THOST_FTDC_OF_Open)
+	//		{
+	//			LongEnClose[pOrder->InstrumentID]++;
+	//		}
+	//		cerr << " OnRtnOrder |合约：<" << pOrder->InstrumentID << "> | 方向 ：" << isOpen << "卖出  撤单状态 ：报单已提交" << endl;
+	//		LOG(INFO) << " OnRtnOrder |合约：<" << pOrder->InstrumentID << "> | 方向 ：" << isOpen << "卖出  撤单状态 ：报单已提交" << endl;
+	//		cerr << "OnRtnOrder | 合约: <" << pOrder->InstrumentID << "> | 买持可用 : " << ShortEnClose[pOrder->InstrumentID] << endl;
+	//		LOG(INFO) << "OnRtnOrder | 合约: <" << pOrder->InstrumentID << "> | 买持可用 : " << ShortEnClose[pOrder->InstrumentID] << endl;
+	//	}
+	//}
 
-	string isOpen = "";
-	///OrderStatus状态修改为成交前会先再次调用，会再次修改可平仓，
-	//当OrderStatus状态修改为成交修改为成交后，应该将可平仓数复原
-
-	if (pOrder->OrderStatus == THOST_FTDC_OST_NoTradeQueueing)
-		//&& (pOrder->OrderSubmitStatus != THOST_FTDC_OSS_Accepted))
-	{
-		if (pOrder->Direction == THOST_FTDC_D_Buy)
-		{
-			BidORDER_REF[pOrder->InstrumentID] = pOrder->OrderRef;
-			if (pOrder->CombOffsetFlag[0] != THOST_FTDC_OF_Open)
-			{
-				ShortEnClose[pOrder->InstrumentID]--;
-				isOpen = "平仓";
-			}
-			cerr << " OnRtnOrder |合约：<" << pOrder->InstrumentID << "> | 方向 ：" << isOpen << "买入  报单状态 ：报单已提交" << endl;
-			LOG(INFO) << " OnRtnOrder |合约：<" << pOrder->InstrumentID << "> | 方向 ：" << isOpen << "买入  报单状态 ：报单已提交" << endl;
-			cerr << "OnRtnOrder | 合约: <" << pOrder->InstrumentID << "> | 卖持可用 : " << ShortEnClose[pOrder->InstrumentID] << endl;
-			LOG(INFO) << "OnRtnOrder | 合约: <" << pOrder->InstrumentID << "> | 卖持可用 : " << ShortEnClose[pOrder->InstrumentID] << endl;
-		}
-
-		if (pOrder->Direction == THOST_FTDC_D_Sell)
-		{
-			string isOpen = "";
-			AskORDER_REF[pOrder->InstrumentID] = pOrder->OrderRef;
-
-			if (pOrder->CombOffsetFlag[0] != THOST_FTDC_OF_Open)
-			{
-				LongEnClose[pOrder->InstrumentID]--;
-			}
-			cerr << " OnRtnOrder |合约：<" << pOrder->InstrumentID << "> | 方向 ：" << isOpen << "卖出  报单状态 ：报单已提交" << endl;
-			LOG(INFO) << " OnRtnOrder |合约：<" << pOrder->InstrumentID << "> | 方向 ：" << isOpen << "卖出  报单状态 ：报单已提交" << endl;
-			cerr << "OnRtnOrder | 合约: <" << pOrder->InstrumentID << "> | 买持可用 : " << ShortEnClose[pOrder->InstrumentID] << endl;
-			LOG(INFO) << "OnRtnOrder | 合约: <" << pOrder->InstrumentID << "> | 买持可用 : " << ShortEnClose[pOrder->InstrumentID] << endl;
-		}
-	}
-	//报单成交，更正错误修改的可平仓数
-	if (pOrder->OrderStatus == THOST_FTDC_OST_AllTraded)
-		//&& (pOrder->OrderSubmitStatus != THOST_FTDC_OSS_Accepted))
-	{
-		if (pOrder->Direction == THOST_FTDC_D_Buy)
-		{
-			//BidORDER_REF[pOrder->InstrumentID] = pOrder->OrderRef;
-			if (pOrder->CombOffsetFlag[0] != THOST_FTDC_OF_Open)
-			{
-				ShortEnClose[pOrder->InstrumentID]++;
-			}
-		}
-		if (pOrder->Direction == THOST_FTDC_D_Sell)
-		{
-			//	string isOpen = "";
-			//AskORDER_REF[pOrder->InstrumentID] = pOrder->OrderRef;
-			if (pOrder->CombOffsetFlag[0] != THOST_FTDC_OF_Open)
-			{
-				LongEnClose[pOrder->InstrumentID]++;
-			}
-		}
-	}
-	////
-	///撤单提交
-	if (pOrder->OrderStatus == THOST_FTDC_OST_Canceled)
-	{
-		if (pOrder->Direction == THOST_FTDC_D_Buy)
-		{
-			BidORDER_REF[pOrder->InstrumentID] = pOrder->OrderRef;
-			if (pOrder->CombOffsetFlag[0] != THOST_FTDC_OF_Open)
-			{
-				ShortEnClose[pOrder->InstrumentID]++;
-			}
-			cerr << " OnRtnOrder |合约：<" << pOrder->InstrumentID << "> | 方向 ：" << isOpen << "买入  撤单状态 ：报单已提交" << endl;
-			LOG(INFO) << " OnRtnOrder |合约：<" << pOrder->InstrumentID << "> | 方向 ：" << isOpen << "买入  撤单状态 ：报单已提交" << endl;
-
-			cerr << "OnRtnOrder | 合约: <" << pOrder->InstrumentID << "> | 卖持可用 : " << ShortEnClose[pOrder->InstrumentID] << endl;
-			LOG(INFO) << "OnRtnOrder | 合约: <" << pOrder->InstrumentID << "> | 卖持可用 : " << ShortEnClose[pOrder->InstrumentID] << endl;
-		}
-		if (pOrder->Direction == THOST_FTDC_D_Sell)
-		{
-			AskORDER_REF[pOrder->InstrumentID] = pOrder->OrderRef;
-			if (pOrder->CombOffsetFlag[0] != THOST_FTDC_OF_Open)
-			{
-				LongEnClose[pOrder->InstrumentID]++;
-			}
-			cerr << " OnRtnOrder |合约：<" << pOrder->InstrumentID << "> | 方向 ：" << isOpen << "卖出  撤单状态 ：报单已提交" << endl;
-			LOG(INFO) << " OnRtnOrder |合约：<" << pOrder->InstrumentID << "> | 方向 ：" << isOpen << "卖出  撤单状态 ：报单已提交" << endl;
-
-			cerr << "OnRtnOrder | 合约: <" << pOrder->InstrumentID << "> | 买持可用 : " << ShortEnClose[pOrder->InstrumentID] << endl;
-			LOG(INFO) << "OnRtnOrder | 合约: <" << pOrder->InstrumentID << "> | 买持可用 : " << ShortEnClose[pOrder->InstrumentID] << endl;
-		}
-	}
 }
-
-
-
-
-//***********************************************************************************************************************
+//**********************************************************************************************
+//**********************************************************************************************
 //执行宣告录入请求
 void CTraderSpi::ReqExecOrderInsert()
 {
@@ -870,9 +937,6 @@ void CTraderSpi::OnRtnQuote(CThostFtdcQuoteField *pQuote)
 			cout << "--->>> 报价撤单成功" << endl;
 	}
 }
-
-
-
 
 void CTraderSpi:: OnFrontDisconnected(int nReason)
 {

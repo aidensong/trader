@@ -32,6 +32,8 @@ public:
 	///请求查询投资者持仓响应
 	virtual void OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInvestorPosition, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
+	//委托查询响应
+	virtual void OnRspQryOrder(CThostFtdcOrderField *pOrder, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 	///报单录入请求响应
 	virtual void OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
@@ -77,6 +79,7 @@ public:
 	///成交通知
 	virtual void OnRtnTrade(CThostFtdcTradeField *pTrade);
 
+
 	///交易所实例没有添加
     //******************************************************************************************************
 
@@ -85,6 +88,8 @@ public:
 
 	///报单操作错误回报
 	virtual void OnErrRtnOrderAction(CThostFtdcOrderActionField *pOrderAction, CThostFtdcRspInfoField *pRspInfo);
+
+
 public:
 	///用户登录请求
 	void ReqUserLogin();
@@ -96,6 +101,8 @@ public:
 	void ReqQryTradingAccount();
 	///请求查询投资者持仓
 	void ReqQryInvestorPosition();
+	///请求查询委托
+	void ReqQryOrder();
 	///报单录入请求
 	void ReqOrderInsert(TThostFtdcDirectionType DIRECTION, TThostFtdcPriceType LIMIT_PRICE ,string InstrumentID);
 	///执行宣告录入请求
