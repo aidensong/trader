@@ -96,7 +96,7 @@ void QuotaStrategy()
 				}
 				else
 				{    ///委托被CTP退回
-					AskOrderStatus = 'e';
+					AskOrderStatus = 'n';
 				}
 			}
 			else///没有开始报单
@@ -128,6 +128,7 @@ void QuotaStrategy()
 				//#define THOST_FTDC_D_Sell 		
 			
 				stringstream ss;
+				
 				pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Buy, MarketDataField[InstrumentID].BidPrice1 - spreed / 2, InstrumentID);
 				ss << iNextOrderRef;
 				ss >> BidORDER_REF_present[InstrumentID];
@@ -136,9 +137,10 @@ void QuotaStrategy()
 				ss << iNextOrderRef;
 				ss >> AskORDER_REF_present[InstrumentID];
 
+			
 			}
 			///买入报单成交而卖出报单没有成交
-			if ((BidOrderStatus == THOST_FTDC_OST_AllTraded) && (AskOrderStatus!= THOST_FTDC_OST_AllTraded))
+			if ((BidOrderStatus == THOST_FTDC_OST_AllTraded) && (AskOrderStatus == THOST_FTDC_OST_PartTradedNotQueueing))
 			{
 				//#define THOST_FTDC_D_Buy 
 
@@ -156,7 +158,7 @@ void QuotaStrategy()
 
 			}
 			///卖出报单成交而买入报单没有成交
-			if ((AskOrderStatus   == THOST_FTDC_OST_AllTraded) && (BidOrderStatus != THOST_FTDC_OST_AllTraded))
+			if ((AskOrderStatus == THOST_FTDC_OST_AllTraded) && (BidOrderStatus == THOST_FTDC_OST_PartTradedNotQueueing))
 			{
 				//#define THOST_FTDC_D_Buy 
 
@@ -188,16 +190,11 @@ void mProcess()
 			g_lockqueue.lock();
 
 			msg = MsgQueue.front();
-			cerr << MsgQueue.size()<< endl;
+			cerr <<"消息队列消息数："<<MsgQueue.size()<< endl;
 			//LOG(INFO) << "--->>> 买入<" << InstrumentID << ">报单|价格：" << Price << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
 			MsgQueue.pop();
-
-
-
 			g_lockqueue.unlock();
-
 			//pTraderUserSpi->IsErrorRspInfo(&msg.RspInfo);
-
 			//消息队列处理//
 
 			switch (msg.Msg_Type)
@@ -205,9 +202,34 @@ void mProcess()
 				// 委托回报
 			case RtnOrder:
 			{
-				g_lockqueue.lock();
-				OrderMap[msg.RtnOrder.OrderRef] = msg.RtnOrder;
+				g_lockqueue.lock();				
 				
+				//根据委托回报的状态计算**********************************************************************
+				
+				map<string, CThostFtdcOrderField>::iterator it = OrderMap.find(msg.RtnOrder.OrderRef);
+
+				TThostFtdcOrderStatusType OrderStatus='n';//原委托状态，无委托初始值为n
+
+				if (it != OrderMap.end())
+				{
+					OrderStatus = it->second.OrderStatus;
+				}
+				
+				
+				//委托状态改变
+				if (OrderStatus != msg.RtnOrder.OrderStatus)
+				{
+					///委托录入 冻结相应的持仓		
+					if (msg.RtnOrder.OrderStatus == THOST_FTDC_OST_NoTradeQueueing)
+					PositionFrozen(msg.RtnOrder.InstrumentID, msg.RtnOrder.Direction, msg.RtnOrder.CombOffsetFlag[0], msg.RtnOrder.VolumeTotalOriginal);
+					//委托撤单 回复相应的持仓	
+					if (msg.RtnOrder.OrderStatus == THOST_FTDC_OST_Canceled)
+					PositionFrozen(msg.RtnOrder.InstrumentID, msg.RtnOrder.Direction, msg.RtnOrder.CombOffsetFlag[0], -msg.RtnOrder.VolumeTotalOriginal);
+				
+				}
+
+				
+				//*******************************************************************************************************
 				g_lockqueue.unlock();
 				break;
 
@@ -304,6 +326,7 @@ void main(void)
 	//
 	//	cv.wait(lck); // 当前线程被阻塞, 当全局标志位变为 true 之后 线程继续执行
 
+	//等待系统初始化完成
 	while (!InitFinished)
 	  Sleep(1000);
 	

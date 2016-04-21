@@ -204,9 +204,6 @@ void OrderCheck(string InstrumentID, TThostFtdcDirectionType Direction, int Volu
 	}
 }
 
-
-
-
 //注意：当字符串为空时，也会返回一个空字符串  
 void split(std::string& s, std::string& delim, std::vector< std::string >* ret)
 {
