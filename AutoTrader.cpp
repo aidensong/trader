@@ -118,19 +118,56 @@ void QuotaStrategy()
 			}
 			else///没有开始报单
 				BidOrderStatus = THOST_FTDC_OST_AllTraded;
-
-			if ((BidOrderStatus == THOST_FTDC_OST_AllTraded) && (BidOrderStatus == THOST_FTDC_OST_AllTraded))
+			
+			
+			///双边都成交重新报单
+			if ((BidOrderStatus == THOST_FTDC_OST_AllTraded) && (AskOrderStatus == THOST_FTDC_OST_AllTraded))
 			{
 				//#define THOST_FTDC_D_Buy 
 
 				//#define THOST_FTDC_D_Sell 		
 			
 				stringstream ss;
-				pTraderUserSpi->ReqOrderInsert(MarketDataField[InstrumentID].BidPrice1 - spreed / 2, THOST_FTDC_D_Buy, InstrumentID);
+				pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Buy, MarketDataField[InstrumentID].BidPrice1 - spreed / 2, InstrumentID);
 				ss << iNextOrderRef;
 				ss >> BidORDER_REF_present[InstrumentID];
 
-				pTraderUserSpi->ReqOrderInsert(MarketDataField[InstrumentID].AskPrice1 + spreed / 2, THOST_FTDC_D_Sell, InstrumentID);
+				pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Sell, MarketDataField[InstrumentID].AskPrice1 + spreed / 2, InstrumentID);
+				ss << iNextOrderRef;
+				ss >> AskORDER_REF_present[InstrumentID];
+
+			}
+			///买入报单成交而卖出报单没有成交
+			if ((BidOrderStatus == THOST_FTDC_OST_AllTraded) && (AskOrderStatus!= THOST_FTDC_OST_AllTraded))
+			{
+				//#define THOST_FTDC_D_Buy 
+
+				//#define THOST_FTDC_D_Sell 		
+
+				stringstream ss;
+				
+				//撤单
+				pTraderUserSpi->ReqOrderAction(&OrderMap[AskORDER_REF_present[InstrumentID]]);
+
+				//
+				pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Sell, MarketDataField[InstrumentID].AskPrice1 + spreed / 2, InstrumentID);
+				ss << iNextOrderRef;
+				ss >> AskORDER_REF_present[InstrumentID];
+
+			}
+			///卖出报单成交而买入报单没有成交
+			if ((AskOrderStatus   == THOST_FTDC_OST_AllTraded) && (BidOrderStatus != THOST_FTDC_OST_AllTraded))
+			{
+				//#define THOST_FTDC_D_Buy 
+
+				//#define THOST_FTDC_D_Sell 		
+
+				stringstream ss;
+				
+				//撤单
+				pTraderUserSpi->ReqOrderAction(&OrderMap[BidORDER_REF_present[InstrumentID]]);
+				//
+				pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Buy, MarketDataField[InstrumentID].BidPrice1 - spreed / 2, InstrumentID);
 				ss << iNextOrderRef;
 				ss >> AskORDER_REF_present[InstrumentID];
 
@@ -151,13 +188,18 @@ void mProcess()
 			g_lockqueue.lock();
 
 			msg = MsgQueue.front();
-
+			cerr << MsgQueue.size()<< endl;
+			//LOG(INFO) << "--->>> 买入<" << InstrumentID << ">报单|价格：" << Price << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
 			MsgQueue.pop();
+
+
 
 			g_lockqueue.unlock();
 
+			//pTraderUserSpi->IsErrorRspInfo(&msg.RspInfo);
 
 			//消息队列处理//
+
 			switch (msg.Msg_Type)
 			{
 				// 委托回报
@@ -165,6 +207,7 @@ void mProcess()
 			{
 				g_lockqueue.lock();
 				OrderMap[msg.RtnOrder.OrderRef] = msg.RtnOrder;
+				
 				g_lockqueue.unlock();
 				break;
 
@@ -197,6 +240,7 @@ void mProcess()
 			//执行策略
 			QuotaStrategy();
 		}
+		 
 	}
 }
 
@@ -211,8 +255,8 @@ void main(void)
 	// Trader配置参数
 	char  TRADER_FRONT_ADDR[] = "tcp://172.16.100.225:41205";	// 前置地址
 	TThostFtdcBrokerIDType	BROKER_ID ="7080" ;			// 经纪公司代码
-	TThostFtdcInvestorIDType INVESTOR_ID ="20104965";		// 投资者代码
-	TThostFtdcPasswordType  PASSWORD = "112288";		// 用户密码	
+	TThostFtdcInvestorIDType INVESTOR_ID = "20104965";//"20105161";//"		// 投资者代码
+		TThostFtdcPasswordType  PASSWORD = "112288";//"123456";//;		// 用户密码	
 
     //LOG
 	google::InitGoogleLogging("AutoTrader");  //参数为自己的可执行文件名 		
@@ -254,7 +298,17 @@ void main(void)
 	
 	pMDUserApi->Init();
 	
+	//std::unique_lock <std::mutex> lck(g_lockqueue);
+
+	//while (!InitFinished) // 如果标志位不为 true, 则等待...
+	//
+	//	cv.wait(lck); // 当前线程被阻塞, 当全局标志位变为 true 之后 线程继续执行
+
+	while (!InitFinished)
+	  Sleep(1000);
 	
+	//执行策略
+	QuotaStrategy();
 		
 	//自动报单线程	
 	std::thread th(mProcess);

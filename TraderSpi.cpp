@@ -145,11 +145,9 @@ void CTraderSpi::OnRspQryTradingAccount(CThostFtdcTradingAccountField *pTradingA
 	cerr << "--->>> " << "OnRspQryTradingAccount" << endl;
 	if (bIsLast && !IsErrorRspInfo(pRspInfo))
 	{
-		///请求查询投资者持仓
-		ReqQryInvestorPosition();
-		///请求查询委托
-		ReqQryOrder();
-
+		//请求查询投资者持仓
+		ReqQryInvestorPosition();		
+		//ReqQryOrder();
 	}
 }
 
@@ -174,16 +172,27 @@ void CTraderSpi::ReqQryOrder()
 		}
 	} // while
 }
+//查询委托
 void CTraderSpi::OnRspQryOrder(CThostFtdcOrderField *pOrder, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
 	cerr << "--->>> " << "OnRspQryOrder" << endl;
-	if (bIsLast && !IsErrorRspInfo(pRspInfo))
+	if (!IsErrorRspInfo(pRspInfo))
 	{  
-		//更新委托列表
-		g_lockqueue.lock();
-		OrderMap[pOrder->OrderRef] = *pOrder;
-		g_lockqueue.unlock();
+		if (pOrder!=nullptr)
+		{//更新委托列表
+			g_lockqueue.lock();
+			OrderMap[pOrder->OrderRef] = *pOrder;
+			g_lockqueue.unlock(); 
+		}		
+		if (bIsLast)
+		{        
+			/////初始化完成
+			//std::unique_lock <std::mutex> lck(g_lockqueue);
+			 InitFinished = true; // 设置全局标志位为 true.
+			//cv.notify_all(); // 唤醒所有线程.		
+		}
 	}
+	
 }
 
 void CTraderSpi::ReqQryInvestorPosition()
@@ -212,93 +221,105 @@ void CTraderSpi::ReqQryInvestorPosition()
 void CTraderSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInvestorPosition, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
 	cerr << "--->>> " << "OnRspQryInvestorPosition" << endl;
-	if (bIsLast && !IsErrorRspInfo(pRspInfo))
+	if (!IsErrorRspInfo(pRspInfo))
 	{
+		if (pInvestorPosition != nullptr)
+		{
 		//更新持仓列表
 		g_lockqueue.lock();
 		InvestorPositionList.push_back(*pInvestorPosition);
 		g_lockqueue.unlock();
+	      }
+	}
+	///
+	if (bIsLast)
+	{
+		//查询委托
+		ReqQryOrder();
 	}
 }
 
 void CTraderSpi::ReqOrderInsert(TThostFtdcDirectionType DIRECTION, TThostFtdcPriceType LIMIT_PRICE, string InstrumentID)
 {
 	
-						CThostFtdcInputOrderField req;		
+		CThostFtdcInputOrderField req;		
 		
-						memset(&req, 0, sizeof(req));
-						strcpy(req.BrokerID, reqLoginField.BrokerID);
-						strcpy(req.InvestorID, reqLoginField.UserID);
-						///合约代码
-						strcpy(req.InstrumentID, (char*)InstrumentID.data());
+		memset(&req, 0, sizeof(req));
+		strcpy(req.BrokerID, reqLoginField.BrokerID);
+		strcpy(req.InvestorID, reqLoginField.UserID);
+		///合约代码
+		strcpy(req.InstrumentID, (char*)InstrumentID.data());
 						
-						iNextOrderRef++;
+		iNextOrderRef++;
 						
-						sprintf(ORDER_REF, "%d", iNextOrderRef);
+		sprintf(ORDER_REF, "%d", iNextOrderRef);
 						
-						///报单引用
-						strcpy(req.OrderRef, ORDER_REF);				
+		///报单引用
+		strcpy(req.OrderRef, ORDER_REF);				
 						
-						///用户代码
-						//	TThostFtdcUserIDType	UserID;
-						///报单价格条件: 限价
-						req.OrderPriceType = THOST_FTDC_OPT_LimitPrice;
-						///买卖方向: 
-						req.Direction = DIRECTION;
-						
-						if (CheckEnClose(InstrumentID, DIRECTION) > 0)
-						{///组合开平标志: 开仓
-							req.CombOffsetFlag[0] = THOST_FTDC_OF_Close;//THOST_FTDC_OF_Open;
-						}else
-							//组合开平标志: 平仓
-							req.CombOffsetFlag[0] = THOST_FTDC_OF_Open;
-						
-						
-						///组合投机套保标志
-						req.CombHedgeFlag[0] = THOST_FTDC_HF_Speculation;
-						
-						///价格
-						req.LimitPrice = 4000;//Price;
-						
-						///数量: 1
-						req.VolumeTotalOriginal = 1;
-						///有效期类型: 当日有效
-						req.TimeCondition = THOST_FTDC_TC_GFD;
-						///GTD日期
-						//	TThostFtdcDateType	GTDDate;
-						///成交量类型: 任何数量
-						req.VolumeCondition = THOST_FTDC_VC_AV;
-						///最小成交量: 1
-						req.MinVolume = 1;
-						///触发条件: 立即
-						req.ContingentCondition = THOST_FTDC_CC_Immediately;
-						///止损价
-						//	TThostFtdcPriceType	StopPrice;
-						///强平原因: 非强平
-						req.ForceCloseReason = THOST_FTDC_FCC_NotForceClose;
-						///自动挂起标志: 否
-						req.IsAutoSuspend = 0;
-						///业务单元
-						//	TThostFtdcBusinessUnitType	BusinessUnit;
-						///请求编号
-						//	TThostFtdcRequestIDType	RequestID;
-						///用户强评标志: 否
-						req.UserForceClose = 0;//				
-						
-						int iResult = pTraderUserApi->ReqOrderInsert(&req, ++iRequestID);
+		///用户代码
+		//	TThostFtdcUserIDType	UserID;
+		///报单价格条件: 限价
+		req.OrderPriceType = THOST_FTDC_OPT_LimitPrice;
+		///买卖方向: 
+		req.Direction = DIRECTION;
+		int volumn = CheckEnClose(InstrumentID, DIRECTION);
+
+		if (CheckEnClose(InstrumentID, DIRECTION) > 0)
+		{
+			///组合开平标志: 平仓
+			req.CombOffsetFlag[0] = THOST_FTDC_OF_Close;//THOST_FTDC_OF_Open;
+		}
+		else
+			//组合开平标志: 开仓
+			req.CombOffsetFlag[0] = THOST_FTDC_OF_Open;
 						
 						
-					/*	if (Direction == THOST_FTDC_D_Buy)
-						{
-							cerr << "--->>> 买入<" << InstrumentID << ">报单|价格：" << Price << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
-							LOG(INFO) << "--->>> 买入<" << InstrumentID << ">报单|价格：" << Price << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
-						}
-						else
-						{
-							cerr << "--->>> 卖出<" << InstrumentID << ">报单|价格：" << Price << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
-							LOG(INFO)<< "--->>> 卖出<" << InstrumentID << ">报单|价格：" << Price << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
+		///组合投机套保标志
+		req.CombHedgeFlag[0] = THOST_FTDC_HF_Speculation;
 						
-						}*/
+		///价格
+		req.LimitPrice = LIMIT_PRICE;
+						
+		///数量: 1
+		req.VolumeTotalOriginal = 1;
+		///有效期类型: 当日有效
+		req.TimeCondition = THOST_FTDC_TC_GFD;
+		///GTD日期
+		//	TThostFtdcDateType	GTDDate;
+		///成交量类型: 任何数量
+		req.VolumeCondition = THOST_FTDC_VC_AV;
+		///最小成交量: 1
+		req.MinVolume = 1;
+		///触发条件: 立即
+		req.ContingentCondition = THOST_FTDC_CC_Immediately;
+		///止损价
+		//	TThostFtdcPriceType	StopPrice;
+		///强平原因: 非强平
+		req.ForceCloseReason = THOST_FTDC_FCC_NotForceClose;
+		///自动挂起标志: 否
+		req.IsAutoSuspend = 0;
+		///业务单元
+		//	TThostFtdcBusinessUnitType	BusinessUnit;
+		///请求编号
+		//	TThostFtdcRequestIDType	RequestID;
+		///用户强评标志: 否
+		req.UserForceClose = 0;//				
+						
+		int iResult = pTraderUserApi->ReqOrderInsert(&req, ++iRequestID);
+						
+						
+	/*	if (Direction == THOST_FTDC_D_Buy)
+		{
+			cerr << "--->>> 买入<" << InstrumentID << ">报单|价格：" << Price << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
+			LOG(INFO) << "--->>> 买入<" << InstrumentID << ">报单|价格：" << Price << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
+		}
+		else
+		{
+			cerr << "--->>> 卖出<" << InstrumentID << ">报单|价格：" << Price << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
+			LOG(INFO)<< "--->>> 卖出<" << InstrumentID << ">报单|价格：" << Price << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
+						
+		}*/
 }
 
 // 报单请求回应（AVAILABLE） 

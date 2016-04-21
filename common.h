@@ -11,6 +11,7 @@
 #include  <map> 
 #include  <queue> 
 #include <mutex>
+#include <condition_variable> 
 
 enum MsgType
 {
@@ -59,6 +60,8 @@ extern map<string, string> AskORDER_REF_present;//卖报价引用
 
 extern std::mutex   g_lockqueue;
 
+extern std::condition_variable cv; // 全局条件变量.
+
 extern int spreed ;//= 2;
 
 extern int iNextOrderRef;  ///报单应用编号 
@@ -74,6 +77,8 @@ extern vector<CThostFtdcInputOrderActionField> InputOrderActionList;//委托操作列
 extern vector<CThostFtdcInvestorPositionField> InvestorPositionList;//持仓列表
 
 extern vector<CThostFtdcTradeField> TradeList; //成交列表;
+
+extern bool InitFinished ;
 
 extern int CheckEnClose(string InstrumentID, TThostFtdcDirectionType Direction);
 

@@ -1,3 +1,4 @@
+
 #include "common.h"
 
 //*************全局变量*************************************************************
@@ -20,6 +21,8 @@ vector<string> Instrumentlist; //订阅合约list
 
 std::mutex   g_lockqueue;//线程互斥量
 
+std::condition_variable cv; // 全局条件变量.
+
 queue<Msg> MsgQueue;   ///消息队列
 
 map<string,CThostFtdcOrderField> OrderMap;//委托列表
@@ -31,6 +34,8 @@ vector<CThostFtdcTradeField> TradeList; //成交列表;
 vector<CThostFtdcInputOrderActionField> InputOrderActionList;//委托操作列表
 
 vector<CThostFtdcInvestorPositionField> InvestorPositionList;//持仓列表
+
+bool InitFinished = false;
 
 ///检查可平仓数
 int CheckEnClose(string InstrumentID, TThostFtdcDirectionType Direction)
@@ -54,7 +59,8 @@ int CheckEnClose(string InstrumentID, TThostFtdcDirectionType Direction)
 		if ((InvestorPosition.PosiDirection == PosiDirectionType)
 			&& (strcmp(InvestorPosition.InstrumentID,InstrumentID.c_str())==0))
 		{
-			return (isLong ? InvestorPosition.LongFrozen : InvestorPosition.ShortFrozen);
+		
+			return (isLong ? InvestorPosition.Position - InvestorPosition.LongFrozen : InvestorPosition.Position-InvestorPosition.ShortFrozen);
 		}
 	}
 	return 0;
