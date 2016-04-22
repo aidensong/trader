@@ -11,8 +11,7 @@ TThostFtdcOrderRefType	ORDER_REF;	//报单引用
 TThostFtdcOrderRefType	EXECORDER_REF;	//执行宣告引用
 TThostFtdcOrderRefType	FORQUOTE_REF;	//询价引用
 TThostFtdcOrderRefType	QUOTE_REF;	//报价引用
-TThostFtdcFrontIDType	FRONT_ID;	//前置编号
-TThostFtdcSessionIDType	SESSION_ID;	//会话编号
+
 
 // 流控判断
 bool IsFlowControl(int iResult)
@@ -181,17 +180,22 @@ void CTraderSpi::OnRspQryOrder(CThostFtdcOrderField *pOrder, CThostFtdcRspInfoFi
 		if (pOrder!=nullptr)
 		{//更新委托列表
 			g_lockqueue.lock();
-			OrderMap[pOrder->OrderRef] = *pOrder;
-			cerr << "委托|编号:" << pOrder->OrderRef << " | 合约 <" << pOrder->InstrumentID
-				<< "> 委托| 方向(Buy'0' Sell '1'):" << pOrder->Direction << "手数：" << pOrder->VolumeTotalOriginal
-				<< " | 价格：" << pOrder->LimitPrice
-				<< " | 报单状态：" << pOrder->OrderStatus
-				<< endl;
-			LOG(INFO) << "委托|编号:" << pOrder->OrderRef << " | 合约 <" << pOrder->InstrumentID
-				<< "> 委托| 方向(Buy'0' Sell '1'):" << pOrder->Direction << "手数：" << pOrder->VolumeTotalOriginal
-				<< " | 价格：" << pOrder->LimitPrice
-				<< " | 报单状态：" << pOrder->OrderStatus
-				<< endl;
+			
+			//过滤委托
+			if ((FRONT_ID == pOrder->FrontID) && SESSION_ID == pOrder->SessionID) 
+			{
+				OrderMap[pOrder->OrderRef] = *pOrder;
+				cerr << "委托|编号:" << pOrder->OrderSysID << " | 合约 <" << pOrder->InstrumentID
+					<< "> 委托| 方向(Buy'0' Sell '1'):" << pOrder->Direction << "手数：" << pOrder->VolumeTotalOriginal
+					<< " | 价格：" << pOrder->LimitPrice
+					<< " | 报单状态：" << pOrder->OrderStatus
+					<< endl;
+				LOG(INFO) << "委托|编号:" << pOrder->OrderSysID << " | 合约 <" << pOrder->InstrumentID
+					<< "> 委托| 方向(Buy'0' Sell '1'):" << pOrder->Direction << "手数：" << pOrder->VolumeTotalOriginal
+					<< " | 价格：" << pOrder->LimitPrice
+					<< " | 报单状态：" << pOrder->OrderStatus
+					<< endl;
+			}
 			g_lockqueue.unlock(); 
 		}		
 		if (bIsLast)
@@ -238,11 +242,11 @@ void CTraderSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInve
 		//更新持仓列表
 		g_lockqueue.lock();
 		InvestorPositionList.push_back(*pInvestorPosition);
-		cerr << "持仓|合约<" << pInvestorPosition->InstrumentID << "> | 持仓数：" << pInvestorPosition->Position
+		cerr << "持仓|合约<" << pInvestorPosition->InstrumentID << "> | 方向(Buy'0' Sell '1'): " << pInvestorPosition->PosiDirection << "|持仓数：" << pInvestorPosition->Position
 			<< " | 多头冻结数：" << pInvestorPosition->LongFrozen
 			<< " | 空头冻结数：" << pInvestorPosition->ShortFrozen
 			<< endl;
-		LOG(INFO)<< "持仓|合约<" << pInvestorPosition->InstrumentID << "> | 持仓数：" << pInvestorPosition->Position
+		LOG(INFO) << "持仓|合约<" << pInvestorPosition->InstrumentID << "> | 方向(Buy'0' Sell '1'): " << pInvestorPosition->PosiDirection << " | 持仓数：" << pInvestorPosition->Position
 			<< " | 多头冻结数：" << pInvestorPosition->LongFrozen
 			<< " | 空头冻结数：" << pInvestorPosition->ShortFrozen
 			<< endl;
@@ -566,21 +570,23 @@ void CTraderSpi::OnRtnTrade(CThostFtdcTradeField *pTrade)
 ///报单通知 AVAILABLE
 void CTraderSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
 {
-	
-	Msg MsgOrder;
+	//过滤委托
+	if ((FRONT_ID == pOrder->FrontID) && (SESSION_ID == pOrder->SessionID))
+	{
+		g_lockqueue.lock();
 
-	//MsgType Type = RtnTrade;
+		Msg MsgOrder;
 
-	MsgOrder.Msg_Type = RtnOrder;
+		//MsgType Type = RtnTrade;
 
-	MsgOrder.RtnOrder = *pOrder;
+		MsgOrder.Msg_Type = RtnOrder;
 
-	g_lockqueue.lock();
+		MsgOrder.RtnOrder = *pOrder;
 
-	MsgQueue.push(MsgOrder);
+		MsgQueue.push(MsgOrder);
 
-	g_lockqueue.unlock();
-	
+		g_lockqueue.unlock();
+	}
 	
 	//	/////////////////////////////////////////////////////////////////////////
 	//	///TFtdcOrderStatusType是一个报单状态类型

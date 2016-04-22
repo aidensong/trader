@@ -17,6 +17,10 @@ map<string, string> BidORDER_REF_present;//买报价引用
 
 map<string, string> AskORDER_REF_present;//卖报价引用
 
+map<string, string> Bid_refill;// 买报价补单
+
+map<string, string> Ask_refill;// 卖报价补单
+
 vector<string> Instrumentlist; //订阅合约list
 
 std::mutex   g_lockqueue;//线程互斥量
@@ -37,6 +41,8 @@ vector<CThostFtdcInvestorPositionField> InvestorPositionList;//持仓列表
 
 bool InitFinished = false;
 
+
+
 ///检查可平仓数
 int CheckEnClose(string InstrumentID, TThostFtdcDirectionType Direction)
 {
@@ -54,7 +60,7 @@ int CheckEnClose(string InstrumentID, TThostFtdcDirectionType Direction)
 		isLong = false;
 
 	}
-	for (CThostFtdcInvestorPositionField InvestorPosition : InvestorPositionList)
+	for (CThostFtdcInvestorPositionField& InvestorPosition : InvestorPositionList)
 	{
 		if ((InvestorPosition.PosiDirection == PosiDirectionType)
 			&& (strcmp(InvestorPosition.InstrumentID,InstrumentID.c_str())==0))
@@ -83,12 +89,13 @@ void PositionChange(string InstrumentID, TThostFtdcDirectionType Direction, TTho
 			PosiDirectionType = THOST_FTDC_PD_Short;
 
 		}
-		for (CThostFtdcInvestorPositionField InvestorPosition : InvestorPositionList)
+		for (CThostFtdcInvestorPositionField& InvestorPosition : InvestorPositionList)
 		{
 			if ((InvestorPosition.PosiDirection == PosiDirectionType)
 				&& (strcmp(InvestorPosition.InstrumentID, InstrumentID.c_str()) == 0))
 			{
 				InvestorPosition.Position += Volume;
+			
 			}
 		}
 	} //平仓
@@ -103,12 +110,13 @@ void PositionChange(string InstrumentID, TThostFtdcDirectionType Direction, TTho
 			PosiDirectionType = THOST_FTDC_PD_Long;
 
 		}
-		for (CThostFtdcInvestorPositionField InvestorPosition : InvestorPositionList)
+		for (CThostFtdcInvestorPositionField& InvestorPosition : InvestorPositionList)
 		{
 			if ((InvestorPosition.PosiDirection == PosiDirectionType)
 				&& (strcmp(InvestorPosition.InstrumentID, InstrumentID.c_str()) == 0))
 			{
-				InvestorPosition.Position -= Volume;
+				InvestorPosition.Position = InvestorPosition.Position-Volume;
+				
 			}
 		}
 	}
@@ -124,7 +132,7 @@ void PositionFrozen(string InstrumentID, TThostFtdcDirectionType Direction, TTho
 	
 	if (OffsetFlag == THOST_FTDC_OF_Open)
 	{
-		if (Direction == THOST_FTDC_D_Buy)
+		/*if (Direction == THOST_FTDC_D_Buy)
 		{
 			PosiDirectionType = THOST_FTDC_PD_Long;
 			isLong = true;
@@ -145,7 +153,7 @@ void PositionFrozen(string InstrumentID, TThostFtdcDirectionType Direction, TTho
 				else
 					InvestorPosition.ShortFrozen += Volume;
 			}
-		}
+		}*/
 	}
 	else //平仓
 	{
@@ -160,15 +168,15 @@ void PositionFrozen(string InstrumentID, TThostFtdcDirectionType Direction, TTho
 			isLong = true;
 
 		}
-		for (CThostFtdcInvestorPositionField InvestorPosition : InvestorPositionList)
+		for (CThostFtdcInvestorPositionField& InvestorPosition : InvestorPositionList)
 		{
 			if ((InvestorPosition.PosiDirection == PosiDirectionType)
 				&& (strcmp(InvestorPosition.InstrumentID, InstrumentID.c_str()) == 0))
 			{
 				if (isLong)
-					InvestorPosition.LongFrozen -= Volume;
+					InvestorPosition.LongFrozen += Volume;
 				else
-					InvestorPosition.ShortFrozen -= Volume;
+					InvestorPosition.ShortFrozen += Volume;
 			}
 		}
 	}
@@ -178,7 +186,7 @@ void PositionFrozen(string InstrumentID, TThostFtdcDirectionType Direction, TTho
 //委托状态查询
 void OrderCheck(string InstrumentID, TThostFtdcDirectionType Direction, int Volume)
 {
-	bool isLong;
+	/*bool isLong;
 	TThostFtdcPosiDirectionType PosiDirectionType;
 	if (Direction == THOST_FTDC_D_Buy)
 	{
@@ -201,7 +209,7 @@ void OrderCheck(string InstrumentID, TThostFtdcDirectionType Direction, int Volu
 			else
 				InvestorPosition.ShortFrozen += Volume;
 		}
-	}
+	}*/
 }
 
 //注意：当字符串为空时，也会返回一个空字符串  

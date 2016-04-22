@@ -131,9 +131,12 @@ public:
 	bool IsTradingExecOrder(CThostFtdcExecOrderField *pExecOrder);
 	// 是否未撤销的报价
 	bool IsTradingQuote(CThostFtdcQuoteField *pQuote);
+	TThostFtdcFrontIDType	FRONT_ID;	//前置编号
+	TThostFtdcSessionIDType	SESSION_ID;	//会话编号
 private:
 
 	CThostFtdcReqUserLoginField reqLoginField;
 
 	CThostFtdcTraderApi* pTraderUserApi;
+
 };

@@ -58,6 +58,10 @@ extern map<string, string> BidORDER_REF_present;//买报价引用
 
 extern map<string, string> AskORDER_REF_present;//卖报价引用
 
+extern map<string, string> Bid_refill;//买报价引用
+
+extern map<string, string> Ask_refill;//卖报价引用
+
 extern std::mutex   g_lockqueue;
 
 extern std::condition_variable cv; // 全局条件变量.
