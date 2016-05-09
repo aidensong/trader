@@ -150,7 +150,7 @@ void QuotaStrategy()
 				//#define THOST_FTDC_D_Buy 
 				//#define THOST_FTDC_D_Sell
 				//是否已经是改单
-				if (Ask_refill.count(AskORDER_REF_present[InstrumentID])==0)
+				if (Ask_refill[InstrumentID].compare(AskORDER_REF_present[InstrumentID])!= 0)				
 				{
 					stringstream ss;
 					//撤单
@@ -171,7 +171,7 @@ void QuotaStrategy()
 
 				//是否已经是改单			
 				
-				if (Bid_refill.count(BidORDER_REF_present[InstrumentID])==0);			
+				if (Bid_refill[InstrumentID].compare(BidORDER_REF_present[InstrumentID])!=0)
 				{
 					stringstream ss;
 					//撤单
