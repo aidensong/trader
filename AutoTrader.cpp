@@ -50,18 +50,12 @@ void  LogpInvestorPosition()
 {
 	for (CThostFtdcInvestorPositionField InvestorPosition : InvestorPositionList)
 	{
-		cerr << "持仓|<" << InvestorPosition.InstrumentID << ">|方向(Buy'2'Sell'3'):" << InvestorPosition.PosiDirection << "|持仓：" << InvestorPosition.Position
-			<< " |多头冻结：" << InvestorPosition.LongFrozen
-			<< " |空头冻结：" << InvestorPosition.ShortFrozen
-			<< endl;
-		LOG(INFO) << "持仓|<" << InvestorPosition.InstrumentID <<">|方向(Buy'2'Sell'3'):" << InvestorPosition.PosiDirection<< "|持仓：" << InvestorPosition.Position
-			<< " | 多头冻结：" << InvestorPosition.LongFrozen
-			<< " | 空头冻结：" << InvestorPosition.ShortFrozen
-			<< endl;
+		cerr << "<持仓>||<" << InvestorPosition.InstrumentID << ">|方向(2.买3.卖):" << InvestorPosition.PosiDirection << "|持仓:" << InvestorPosition.Position
+			<< "|多头冻结:" << InvestorPosition.LongFrozen<< "|空头冻结:" << InvestorPosition.ShortFrozen<< endl;
+		LOG(INFO) << "<持仓>||<" << InvestorPosition.InstrumentID <<">|方向(2.买3.卖):" << InvestorPosition.PosiDirection<< "|持仓:" << InvestorPosition.Position
+			<< " | 多头冻结：" << InvestorPosition.LongFrozen<< " | 空头冻结：" << InvestorPosition.ShortFrozen<< endl;
 	}
 }
-
-
 ///报单线程 双边报价策略
 void QuotaStrategy()
 {
@@ -97,8 +91,8 @@ void QuotaStrategy()
 		TThostFtdcOrderStatusType BidOrderStatus;
 		
 		//入场
-		if (MarketDataField[InstrumentID].BidPrice1 > 0 && MarketDataField[InstrumentID].AskPrice1 > 0&
-			MarketDataField[InstrumentID].BidPrice1 <10000000 && MarketDataField[InstrumentID].AskPrice1 <10000000)
+		if ((MarketDataField[InstrumentID].BidPrice1 > 0 )&&( MarketDataField[InstrumentID].AskPrice1 > 0)&&
+			(MarketDataField[InstrumentID].BidPrice1 <10000000) && (MarketDataField[InstrumentID].AskPrice1 <10000000))
 		{
 			//卖委托
 			if (AskORDER_REF_present[InstrumentID] != "")
@@ -132,9 +126,6 @@ void QuotaStrategy()
 			else///没有开始报单
 				BidOrderStatus = THOST_FTDC_OST_AllTraded;			
 			
-		
-			
-			
 			///双边都成交重新报单
 			if ((BidOrderStatus == THOST_FTDC_OST_AllTraded) && (AskOrderStatus == THOST_FTDC_OST_AllTraded))
 			{
@@ -162,19 +153,19 @@ void QuotaStrategy()
 			{
 				//#define THOST_FTDC_D_Buy 
 				//#define THOST_FTDC_D_Sell
+				
+				
 				//是否已经是改单
 				
-/*				if (Ask_refill[InstrumentID].compare(AskORDER_REF_present[InstrumentID])!= 0)				
-				{*/			
+			if (Ask_refill[InstrumentID].compare(AskORDER_REF_present[InstrumentID])!= 0)				
+				{		
 					//
-			    //pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Sell, MarketDataField[InstrumentID].AskPrice1 + spreed / 2, InstrumentID);							
-				
+			    //pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Sell, MarketDataField[InstrumentID].AskPrice1 + spreed / 2, InstrumentID);	
 				//撤单
-				pTraderUserSpi->ReqOrderAction(&OrderMap[BidORDER_REF_present[InstrumentID]]);
-				//}
+			    pTraderUserSpi->ReqOrderAction(&OrderMap[AskORDER_REF_present[InstrumentID]]);
+				
+				}
 			}
-
-
 			///买入报单成交而卖出报单已撤
 			if ((BidOrderStatus == THOST_FTDC_OST_AllTraded) && (AskOrderStatus == THOST_FTDC_OST_Canceled))
 			{
@@ -182,32 +173,29 @@ void QuotaStrategy()
 				//#define THOST_FTDC_D_Buy 
 				//#define THOST_FTDC_D_Sell
 				//是否已经是改单
-				//if (Ask_refill[InstrumentID].compare(AskORDER_REF_present[InstrumentID]) != 0)
-				//{
+				if (Ask_refill[InstrumentID].compare(AskORDER_REF_present[InstrumentID]) != 0)
+				{
 					stringstream ss;				
 					pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Sell, MarketDataField[InstrumentID].AskPrice1 + spreed / 2, InstrumentID);
 					ss << iNextOrderRef;
 					ss >> AskORDER_REF_present[InstrumentID];
 					Ask_refill[InstrumentID] = AskORDER_REF_present[InstrumentID];
-				//}
+				}
 			}
-
-
+		
 			///卖出报单成交而买入报单没有成交
 			if ((AskOrderStatus == THOST_FTDC_OST_AllTraded) && (BidOrderStatus == THOST_FTDC_OST_NoTradeQueueing))
 			{
 				//#define THOST_FTDC_D_Buy
 				//#define THOST_FTDC_D_Sell 
 
-				//是否已经是改单			
-				
-				/*if (Bid_refill[InstrumentID].compare(BidORDER_REF_present[InstrumentID])!=0)
-				{*/
-					
+				//是否已经是改单				
+				if (Bid_refill[InstrumentID].compare(BidORDER_REF_present[InstrumentID])!=0)
+				{
 					//撤单
-					pTraderUserSpi->ReqOrderAction(&OrderMap[BidORDER_REF_present[InstrumentID]]);
+				pTraderUserSpi->ReqOrderAction(&OrderMap[BidORDER_REF_present[InstrumentID]]);
 				
-			//	}
+			     }
 
 			}
 
@@ -219,14 +207,14 @@ void QuotaStrategy()
 
 				//是否已经是改单			
 
-				//if (Bid_refill[InstrumentID].compare(BidORDER_REF_present[InstrumentID]) != 0)
-				//{
+				if (Bid_refill[InstrumentID].compare(BidORDER_REF_present[InstrumentID]) != 0)
+				{
 					stringstream ss;				
 					pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Buy, MarketDataField[InstrumentID].BidPrice1 - spreed / 2, InstrumentID);
 					ss << iNextOrderRef;
 					ss >> BidORDER_REF_present[InstrumentID];
-					//Bid_refill[InstrumentID] = BidORDER_REF_present[InstrumentID];
-				//}
+					Bid_refill[InstrumentID] = BidORDER_REF_present[InstrumentID];
+				}
 
 			}
 
@@ -243,121 +231,103 @@ void mProcess()
 		{
 			Msg msg;
 			g_lockqueue.lock();
-
+			
 			msg = MsgQueue.front();
-			cerr << "消息 类型(|委托 0|成交 1|委托录入2|撤单3):"<< msg.Msg_Type << endl;
-			LOG(INFO) << "消息 类型(|委托 0|成交 1|委托录入2|撤单3):" << msg.Msg_Type << endl;
-			cerr <<"消息队列消息数："<<MsgQueue.size()<< endl;
-			LOG(INFO)<< "消息队列消息数：" << MsgQueue.size() << endl;			
-			
-			MsgQueue.pop();
-			
-			g_lockqueue.unlock();
-			
+
+			cerr <<      "****************************消息BEGIN*************************************" << endl;
+			LOG(INFO) << "****************************消息BEGIN*************************************" << endl;
+			cerr <<      "<消息>||类型(0.委托1.成交2.委托录入3.撤单):" << msg.Msg_Type << "|消息数:" << MsgQueue.size() << endl;
+			LOG(INFO) << "<消息>||类型(0.委托1.成交2.委托录入3.撤单):" << msg.Msg_Type << "|消息数:" << MsgQueue.size() << endl;			
+			MsgQueue.pop();			
+			g_lockqueue.unlock();			
 			//pTraderUserSpi->IsErrorRspInfo(&msg.RspInfo);
 			//消息队列处理//
-
 			switch (msg.Msg_Type)
 			{
-				// 委托回报
-			case RtnOrder:
-			{
-				//根据委托回报的状态计算**********************************************************************				
-				TThostFtdcOrderStatusType OrderStatus = 'n';//原委托状态，无委托初始值为n				
-				//查找委托列表中是否存在此委托，确定此委托是否为新委托
-				
-				if (OrderMap.count(msg.RtnOrder.OrderRef)>0)
-				
-					OrderStatus = OrderMap[msg.RtnOrder.OrderRef].OrderStatus;		
-				
-				//委托状态改变
-				if (OrderStatus != msg.RtnOrder.OrderStatus)
+					// 委托回报
+				case RtnOrder:
 				{
-					///委托录入 冻结相应的持仓		
-					if (msg.RtnOrder.OrderStatus == THOST_FTDC_OST_NoTradeQueueing)					
-						PositionFrozen(msg.RtnOrder.InstrumentID, msg.RtnOrder.Direction, msg.RtnOrder.CombOffsetFlag[0], msg.RtnOrder.VolumeTotalOriginal);
-				
-					//委托撤单 恢复冻结的持仓	
+					//根据委托回报的状态计算**********************************************************************				
+					TThostFtdcOrderStatusType OrderStatus = 'n';//原委托状态，无委托初始值为n				
 					
-					if (msg.RtnOrder.OrderStatus == THOST_FTDC_OST_Canceled)
-					    PositionFrozen(msg.RtnOrder.InstrumentID, msg.RtnOrder.Direction, msg.RtnOrder.CombOffsetFlag[0], -msg.RtnOrder.VolumeTotalOriginal);
-				   
-					// 委托 成交 恢复冻结的持仓	 计算持仓
-					if (msg.RtnOrder.OrderStatus == THOST_FTDC_OST_AllTraded)
+					//查找委托列表中是否存在此委托，确定此委托是否为新委托
+				
+					if (OrderMap.count(msg.RtnOrder.OrderRef)>0)
+				
+						OrderStatus = OrderMap[msg.RtnOrder.OrderRef].OrderStatus;		
+				
+					//委托状态改变
+					if (OrderStatus != msg.RtnOrder.OrderStatus)
 					{
-						PositionChange(msg.RtnOrder.InstrumentID, msg.RtnOrder.Direction, msg.RtnOrder.CombOffsetFlag[0], msg.RtnOrder.VolumeTotalOriginal);
+						///委托录入 冻结相应的持仓		
+						if (msg.RtnOrder.OrderStatus == THOST_FTDC_OST_NoTradeQueueing)					
+							PositionFrozen(msg.RtnOrder.InstrumentID, msg.RtnOrder.Direction, msg.RtnOrder.CombOffsetFlag[0], msg.RtnOrder.VolumeTotalOriginal);
+				
+						//委托撤单 恢复冻结的持仓	
+					
+						if (msg.RtnOrder.OrderStatus == THOST_FTDC_OST_Canceled)
+							PositionFrozen(msg.RtnOrder.InstrumentID, msg.RtnOrder.Direction, msg.RtnOrder.CombOffsetFlag[0], -msg.RtnOrder.VolumeTotalOriginal);
+				   
+						// 委托 成交 恢复冻结的持仓	 计算持仓
+						if (msg.RtnOrder.OrderStatus == THOST_FTDC_OST_AllTraded)
+						{
+							PositionChange(msg.RtnOrder.InstrumentID, msg.RtnOrder.Direction, msg.RtnOrder.CombOffsetFlag[0], msg.RtnOrder.VolumeTotalOriginal);
 
-						PositionFrozen(msg.RtnOrder.InstrumentID, msg.RtnOrder.Direction, msg.RtnOrder.CombOffsetFlag[0], -msg.RtnOrder.VolumeTotalOriginal);
+							PositionFrozen(msg.RtnOrder.InstrumentID, msg.RtnOrder.Direction, msg.RtnOrder.CombOffsetFlag[0], -msg.RtnOrder.VolumeTotalOriginal);
+						}									
+						
+						cerr <<     "<委托>||编号:" << msg.RtnOrder.OrderSysID << "|<" << msg.RtnOrder.InstrumentID
+							<< ">方向(0.买1.卖):" << msg.RtnOrder.Direction << "手数:" << msg.RtnOrder.VolumeTotalOriginal
+							<< "|开平(0.开1.平):" << msg.RtnOrder.CombOffsetFlag[0]
+							<< "|价格:" << msg.RtnOrder.LimitPrice
+							<< "|状态:" << msg.RtnOrder.OrderStatus<< endl;						
+						
+						LOG(INFO) << "<委托>||编号:" << msg.RtnOrder.OrderSysID << "|<" << msg.RtnOrder.InstrumentID
+							<< ">方向(0.买1.卖):" << msg.RtnOrder.Direction << "|手数:" << msg.RtnOrder.VolumeTotalOriginal
+							<< "|开平(0.开1.平):" << msg.RtnOrder.CombOffsetFlag[0]
+							<< "|价格:" << msg.RtnOrder.LimitPrice
+							<< "|状态:" << msg.RtnOrder.OrderStatus << endl;			
+					
+						LogpInvestorPosition();					
+						//更新委托列表中的状态
+						OrderMap[msg.RtnOrder.OrderRef] = msg.RtnOrder;
+						
+						//执行策略
+						QuotaStrategy();
 					}
-				
 					
-					
-					//*******************************************************************************************************
-					cerr << "委托|编号:" << msg.RtnOrder.OrderSysID << "|<" << msg.RtnOrder.InstrumentID
-						<< ">方向(Buy'0'Sell'1'):" << msg.RtnOrder.Direction << " 手数:" << msg.RtnOrder.VolumeTotalOriginal
+					cerr <<      "****************************消息END*************************************" << endl;
+					LOG(INFO) << "****************************消息END*************************************" << endl;
+					break;
+				};		
+				// 成交回报
+				case RtnTrade:
+				{			
+					//g_lockqueue.lock();
 
-						<< " | 开平：(0 开，1 平)" << msg.RtnOrder.CombOffsetFlag[0]
-						<< " | 价格：" << msg.RtnOrder.LimitPrice
-						<< " | 报单状态：" << msg.RtnOrder.OrderStatus
-
-						<< endl;
-
-					LOG(INFO) << "委托|编号:" << msg.RtnOrder.OrderSysID << " |<" << msg.RtnOrder.InstrumentID
-						<< ">方向(Buy'0'Sell'1'):" << msg.RtnOrder.Direction << "|手数:" << msg.RtnOrder.VolumeTotalOriginal
-						<< " | 开平：(0 开，1 平)" << msg.RtnOrder.CombOffsetFlag[0]
-						<< "|价格：" << msg.RtnOrder.LimitPrice
-						<< "|状态：" << msg.RtnOrder.OrderStatus
-						<< endl;
-
-					LogpInvestorPosition();
-					
-					//更新委托列表中的状态
-					OrderMap[msg.RtnOrder.OrderRef] = msg.RtnOrder;
-
-					//执行策略
-					QuotaStrategy();
+					//TradeList.push_back(msg.RtnTrade);
 				
+					//PositionChange(msg.RtnTrade.InstrumentID, msg.RtnTrade.Direction, msg.RtnTrade.OffsetFlag, msg.RtnTrade.Volume);
 				
-				}		
+					//PositionFrozen(msg.RtnTrade.InstrumentID, msg.RtnTrade.Direction, msg.RtnTrade.OffsetFlag, -msg.RtnTrade.Volume);
+				
+					//LogpInvestorPosition();
+				
+					//g_lockqueue.unlock();
 
+					break;
+				};
 			
-				
-				break;
-			};
-		
-			// 成交回报
-			case RtnTrade:
-			{
-			
-				
-				//g_lockqueue.lock();
-
-				//TradeList.push_back(msg.RtnTrade);
-				
-				//PositionChange(msg.RtnTrade.InstrumentID, msg.RtnTrade.Direction, msg.RtnTrade.OffsetFlag, msg.RtnTrade.Volume);
-				
-				//PositionFrozen(msg.RtnTrade.InstrumentID, msg.RtnTrade.Direction, msg.RtnTrade.OffsetFlag, -msg.RtnTrade.Volume);
-				
-				//LogpInvestorPosition();
-				
-				//g_lockqueue.unlock();
-
-				break;
-			};
-		
-			
-			//报单录入
-			case InputOrder:
-			{
-				break;
-
-			};
-			// 报单操作录入
-			case InputOrderAction:
-			{
-				break;
-			}
-
+				//报单录入
+				case InputOrder:
+				{
+					break;
+				};
+				// 报单操作录入
+				case InputOrderAction:
+				{
+					break;
+				}
 			}
 
 		
@@ -365,9 +335,6 @@ void mProcess()
 		 
 	}
 }
-
-
-
 void main(void)
 {	
 	

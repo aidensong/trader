@@ -163,8 +163,7 @@ void CMdSpi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketDa
 		//g_lockqueue.lock();
 		//Redis_dataList.push(*pDepthMarketData);
 		//int Redis_size = Redis_dataList.size();
-		//g_lockqueue.unlock();
-	
+		//g_lockqueue.unlock();	
 	 
 	 ////Âò±¨¼Û
 	 //if ((InstrumentStatus[pDepthMarketData->InstrumentID] == "ALLNOT")
@@ -194,7 +193,6 @@ void CMdSpi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketDa
 		// InstrumentStatus[pDepthMarketData->InstrumentID] = "BID";
 
 	 //}
-
 	 //if ((InstrumentStatus[pDepthMarketData->InstrumentID] == "ASK") && (InstrumentStatus[pDepthMarketData->InstrumentID] == "BIDChange")
 		// && (Bid[pDepthMarketData->InstrumentID] >= pDepthMarketData->AskPrice1))
 	 //{
@@ -203,9 +201,7 @@ void CMdSpi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketDa
 		// LOG(INFO) << "Payoff<" << pDepthMarketData->InstrumentID << "> | " << payoff[pDepthMarketData->InstrumentID] << endl;
 		// 
 		// InstrumentStatus[pDepthMarketData->InstrumentID] = "NONE";
-	 //}
-
-	 
+	 //}	 
 	// cerr << "Inst:" << pDepthMarketData->InstrumentID<<" | TIME:" << pDepthMarketData->UpdateTime << "." << pDepthMarketData->UpdateMillisec
 	//<< " | LastPrice:" << pDepthMarketData->LastPrice << " | Bid:" << pDepthMarketData->BidPrice1
 	//	<< " | Volume:" << pDepthMarketData->BidVolume1 << "" << " | Ask:" << pDepthMarketData->AskPrice1
