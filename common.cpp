@@ -49,7 +49,7 @@ int CheckEnClose(string InstrumentID, TThostFtdcDirectionType Direction)
 	bool isLong;
 	TThostFtdcPosiDirectionType PosiDirectionType;
 
-	if (Direction == THOST_FTDC_D_Buy)
+	if (Direction == THOST_FTDC_D_Sell)
 	{
 		PosiDirectionType = THOST_FTDC_PD_Long;
 		isLong = true;
