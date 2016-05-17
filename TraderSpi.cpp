@@ -242,16 +242,12 @@ void CTraderSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInve
 		//更新持仓列表
 		g_lockqueue.lock();
 		InvestorPositionList.push_back(*pInvestorPosition);
-		cerr << "持仓|合约<" << pInvestorPosition->InstrumentID << "> | 方向(Buy'0' Sell '1'): " << pInvestorPosition->PosiDirection << "|持仓数：" << pInvestorPosition->Position
-			<< " | 多头冻结数：" << pInvestorPosition->LongFrozen
-			<< " | 空头冻结数：" << pInvestorPosition->ShortFrozen
-			<< endl;
-		LOG(INFO) << "持仓|合约<" << pInvestorPosition->InstrumentID << "> | 方向(Buy'0' Sell '1'): " << pInvestorPosition->PosiDirection << " | 持仓数：" << pInvestorPosition->Position
-			<< " | 多头冻结数：" << pInvestorPosition->LongFrozen
-			<< " | 空头冻结数：" << pInvestorPosition->ShortFrozen
-			<< endl;
+	    cerr <<      "<持仓>||合约<" << pInvestorPosition->InstrumentID << ">|方向(0.买1.卖):" << pInvestorPosition->PosiDirection << "|持仓:" << pInvestorPosition->Position
+			<< "|多头冻结:" << pInvestorPosition->LongFrozen<< "|空头冻结:" << pInvestorPosition->ShortFrozen<< endl;
+		LOG(INFO) << "<持仓>|合约<" << pInvestorPosition->InstrumentID << ">|方向(0.买1.卖):" << pInvestorPosition->PosiDirection << "|持仓:" << pInvestorPosition->Position
+			<< "|多头冻结：" << pInvestorPosition->LongFrozen<< "|空头冻结：" << pInvestorPosition->ShortFrozen<< endl;
 		g_lockqueue.unlock();
-	      }
+	    }
 	}
 	///
 	if (bIsLast)
@@ -333,13 +329,13 @@ void CTraderSpi::ReqOrderInsert(TThostFtdcDirectionType DIRECTION, TThostFtdcPri
 						
 		if (DIRECTION == THOST_FTDC_D_Buy)
 		{
-			cerr << "--->>> 买入<" << InstrumentID << ">报单|价格：" << LIMIT_PRICE << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
-			LOG(INFO) << "--->>> 买入<" << InstrumentID << ">报单|价格：" << LIMIT_PRICE << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
+			cerr << ">>>>>> 买入<" << InstrumentID << ">|价格：" << LIMIT_PRICE << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
+			LOG(INFO) << ">>>>>> 买入<" << InstrumentID << ">|价格：" << LIMIT_PRICE << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
 		}
 		else
 		{
-			cerr << "--->>> 卖出<" << InstrumentID << ">报单|价格：" << LIMIT_PRICE << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
-			LOG(INFO) << "--->>> 卖出<" << InstrumentID << ">报单|价格：" << LIMIT_PRICE << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
+			cerr << ">>>>>> 卖出<" << InstrumentID << ">|价格：" << LIMIT_PRICE << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
+			LOG(INFO) << ">>>>>> 卖出<" << InstrumentID << ">|价格：" << LIMIT_PRICE << "录入请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
 						
 		}
 }

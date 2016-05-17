@@ -1,0 +1,4 @@
+Log file created at: 2016/05/16 09:22:25
+Running on machine: AIDEN
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+I0516 09:22:25.228771  9888 MdSpi.cpp:32] --->>> OnFrontConnected
