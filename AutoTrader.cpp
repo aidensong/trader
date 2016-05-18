@@ -371,20 +371,6 @@ void main(void)
 
 	SysInit();//初始化全局变量
 
-
-
-	//CTP信息
-	//char MD_FRONT_ADDR[] = "tcp://218.56.58.221:5996?exchangeId=111"; // MD配置参数
-	//"tcp://210.5.151.247:41213"; // 		// 前置地址
-	// Trader配置参数
-
-	///char  TRADER_FRONT_ADDR[] = "tcp://218.56.58.221:5996?exchangeId=111";	// 前置地址
-
-	//TThostFtdcInvestorIDType INVESTOR_ID = "demo";//"20105161";//"		// 投资者代码
-	//TThostFtdcPasswordType  PASSWORD = "112288";//"123456";//;		// 用户密码	
-
-
-
 	TThostFtdcCommandTypeType MdFront;
 
 	TThostFtdcCommandTypeType TraderFront;
