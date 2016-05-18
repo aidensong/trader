@@ -102,6 +102,7 @@
   <ItemGroup>
     <ClCompile Include="caculator.cpp" />
     <ClCompile Include="common.cpp" />
+    <ClCompile Include="Config.cpp" />
     <ClCompile Include="MdSpi.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -115,6 +116,7 @@
     <ClInclude Include="AutoTrader.h" />
     <ClInclude Include="caculator.h" />
     <ClInclude Include="common.h" />
+    <ClInclude Include="Config.h" />
     <ClInclude Include="glog\logging.h" />
     <ClInclude Include="glog\log_severity.h" />
     <ClInclude Include="glog\raw_logging.h" />
@@ -129,6 +131,7 @@
     <ClInclude Include="TraderSpi.h" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="config.txt" />
     <Text Include="instruments.txt" />
     <Text Include="ReadMe.txt" />
   </ItemGroup>

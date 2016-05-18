@@ -18,6 +18,9 @@
     <ClCompile Include="common.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Config.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -61,10 +64,16 @@
     <ClInclude Include="common.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Config.h">
+      <Filter>Config</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
     <Text Include="instruments.txt" />
+    <Text Include="config.txt">
+      <Filter>Config</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ThostTraderApi">
@@ -81,6 +90,9 @@
     </Filter>
     <Filter Include="Core">
       <UniqueIdentifier>{b17bf4aa-69f6-40a8-ac5f-eb545b6bc599}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Config">
+      <UniqueIdentifier>{fc8efb31-e853-4d99-b3f8-0c99990cb2e2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -2,6 +2,7 @@
 #include <windows.h>
 #include <iostream>
 #include "common.h"
+#include "Config.h"
 #pragma warning(disable : 4996)
 using namespace std;
 
@@ -242,9 +243,9 @@ void CTraderSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInve
 		//更新持仓列表
 		g_lockqueue.lock();
 		InvestorPositionList.push_back(*pInvestorPosition);
-	    cerr <<      "<持仓>||合约<" << pInvestorPosition->InstrumentID << ">|方向(0.买1.卖):" << pInvestorPosition->PosiDirection << "|持仓:" << pInvestorPosition->Position
+	    cerr <<      "<持仓>||合约<" << pInvestorPosition->InstrumentID << ">|方向(2.多3.空):" << pInvestorPosition->PosiDirection << "|持仓:" << pInvestorPosition->Position
 			<< "|多头冻结:" << pInvestorPosition->LongFrozen<< "|空头冻结:" << pInvestorPosition->ShortFrozen<< endl;
-		LOG(INFO) << "<持仓>|合约<" << pInvestorPosition->InstrumentID << ">|方向(0.买1.卖):" << pInvestorPosition->PosiDirection << "|持仓:" << pInvestorPosition->Position
+		LOG(INFO) << "<持仓>|合约<" << pInvestorPosition->InstrumentID << ">|方向(2.多3.空):" << pInvestorPosition->PosiDirection << "|持仓:" << pInvestorPosition->Position
 			<< "|多头冻结：" << pInvestorPosition->LongFrozen<< "|空头冻结：" << pInvestorPosition->ShortFrozen<< endl;
 		g_lockqueue.unlock();
 	    }
@@ -411,8 +412,8 @@ void CTraderSpi::ReqOrderAction(CThostFtdcOrderField *pOrder)
 
 	int iResult = pTraderUserApi->ReqOrderAction(&req, ++iRequestID);
 
-	cerr << "委托撤销 | 委托编号：<" << pOrder->OrderRef << "> | 价格：" << pOrder->LimitPrice << "|方向(Buy'0' Sell '1'):" << pOrder->Direction<< iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
-	LOG(INFO)<< "委托撤销 | 委托编号：<" << pOrder->OrderRef << "> | 价格：" << pOrder->LimitPrice << "|方向(Buy'0' Sell '1'):" << pOrder->Direction << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
+	cerr     << "<委托撤销>|委托编号:<" << pOrder->OrderRef << ">|价格:" << pOrder->LimitPrice << "|方向(0.买1.卖):" << pOrder->Direction<< iResult << ((iResult == 0) ? ",成功" : ",失败") << endl;
+	LOG(INFO)<< "<委托撤销>|委托编号:<" << pOrder->OrderRef << ">|价格:" << pOrder->LimitPrice << "|方向(0.买1.卖):" << pOrder->Direction << iResult << ((iResult == 0) ? ",成功" : ",失败") << endl;
 
 
 	//}///ORDER_ACTION_SENT = true;

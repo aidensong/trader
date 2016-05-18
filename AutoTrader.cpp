@@ -1,24 +1,44 @@
 #include "AutoTrader.h"
 #include "common.h"
+#include "Config.h"
 
 //回调类
 CMdSpi* pMDUserSpi = nullptr;
 
 CTraderSpi* pTraderUserSpi = nullptr;
 
+string MDFRONT_ADDR;       //行情地址
+string TRADERFRONT_ADDR;   //交易地址
+string INVESTOR_ID;        //用户
+string PASSWORD;           //密码
+string StrSpreed;         //价差
+
 
 ///读取合约配置文件
 void  SysInit()
 {
+	const char ConfigFile[] = "config.txt";
+	Config configSettings(ConfigFile);
+
+	MDFRONT_ADDR = configSettings.Read("MDAddress", MDFRONT_ADDR);
+
+	TRADERFRONT_ADDR = configSettings.Read("TraderAddress", TRADERFRONT_ADDR);
+
+	INVESTOR_ID = configSettings.Read("user", INVESTOR_ID);
+
+	PASSWORD = configSettings.Read("pwd", PASSWORD);
+
+	StrSpreed = configSettings.Read("spreed", StrSpreed);
+
+    stringstream convert;
+	convert << StrSpreed;
+	convert >> spreed;	
+	
 	//读取配置文件代码
 	//std::vector <string> list;
-
 	ifstream inf;
-
 	inf.open("instruments.txt");
-
 	string s;
-
 	while (getline(inf, s))
 	{
 	
@@ -89,6 +109,8 @@ void QuotaStrategy()
 	{
 		TThostFtdcOrderStatusType AskOrderStatus;
 		TThostFtdcOrderStatusType BidOrderStatus;
+		double AskPrice=0;
+		double BidPrice=0;
 		
 		//入场
 		if ((MarketDataField[InstrumentID].BidPrice1 > 0 )&&( MarketDataField[InstrumentID].AskPrice1 > 0)&&
@@ -100,6 +122,7 @@ void QuotaStrategy()
 				if (OrderMap.count(AskORDER_REF_present[InstrumentID])>0)
 				{
 					AskOrderStatus = OrderMap[AskORDER_REF_present[InstrumentID]].OrderStatus;
+					AskPrice = OrderMap[AskORDER_REF_present[InstrumentID]].LimitPrice;
 				}
 				else
 				{    ///委托被CTP退回
@@ -117,6 +140,7 @@ void QuotaStrategy()
 				if (OrderMap.count(BidORDER_REF_present[InstrumentID])>0)
 				{
 					BidOrderStatus = OrderMap[BidORDER_REF_present[InstrumentID]].OrderStatus;
+					BidPrice = OrderMap[BidORDER_REF_present[InstrumentID]].LimitPrice;
 				}
 				else
 				{    ///委托被CTP退回
@@ -133,14 +157,14 @@ void QuotaStrategy()
 				//#define THOST_FTDC_D_Buy 
 				//#define THOST_FTDC_D_Sell		
 				stringstream bidstr;				
-				pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Buy, MarketDataField[InstrumentID].BidPrice1 - spreed / 2, InstrumentID);
+				pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Buy, MarketDataField[InstrumentID].BidPrice1 - spreed/2 , InstrumentID);
 				bidstr << iNextOrderRef;
 				bidstr >> BidORDER_REF_present[InstrumentID];
 				
 				
 				
 				stringstream askstr;
-				pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Sell, MarketDataField[InstrumentID].AskPrice1 + spreed / 2, InstrumentID);
+				pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Sell, MarketDataField[InstrumentID].AskPrice1 + spreed/2 , InstrumentID);
 				askstr << iNextOrderRef;
 				askstr >> AskORDER_REF_present[InstrumentID];
 			}
@@ -176,7 +200,7 @@ void QuotaStrategy()
 				if (Ask_refill[InstrumentID].compare(AskORDER_REF_present[InstrumentID]) != 0)
 				{
 					stringstream ss;				
-					pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Sell, MarketDataField[InstrumentID].AskPrice1 + spreed / 2, InstrumentID);
+					pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Sell, BidPrice + spreed, InstrumentID);
 					ss << iNextOrderRef;
 					ss >> AskORDER_REF_present[InstrumentID];
 					Ask_refill[InstrumentID] = AskORDER_REF_present[InstrumentID];
@@ -210,7 +234,7 @@ void QuotaStrategy()
 				if (Bid_refill[InstrumentID].compare(BidORDER_REF_present[InstrumentID]) != 0)
 				{
 					stringstream ss;				
-					pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Buy, MarketDataField[InstrumentID].BidPrice1 - spreed / 2, InstrumentID);
+					pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Buy, AskPrice - spreed, InstrumentID);
 					ss << iNextOrderRef;
 					ss >> BidORDER_REF_present[InstrumentID];
 					Bid_refill[InstrumentID] = BidORDER_REF_present[InstrumentID];
@@ -338,59 +362,74 @@ void mProcess()
 void main(void)
 {	
 	
-	//CTP信息
-	char MD_FRONT_ADDR[] = "tcp://172.16.100.225:41213"; // MD配置参数
-	//"tcp://210.5.151.247:41213"; // 		// 前置地址
-	// Trader配置参数
-	char  TRADER_FRONT_ADDR[] = "tcp://172.16.100.225:41205";	// 前置地址
-	TThostFtdcBrokerIDType	BROKER_ID ="7080" ;			// 经纪公司代码
-	TThostFtdcInvestorIDType INVESTOR_ID = "20104965";//"20105161";//"		// 投资者代码
-		TThostFtdcPasswordType  PASSWORD = "112288";//"123456";//;		// 用户密码	
-
-    //LOG
+	//LOG
 	google::InitGoogleLogging("AutoTrader");  //参数为自己的可执行文件名 		
 
 	google::SetLogDestination(google::GLOG_INFO, "./Log/Auto_Info");
 
 	FLAGS_max_log_size = 50;  //最大日志大小为 50MB
-	
+
 	SysInit();//初始化全局变量
-	
+
+
+
+	//CTP信息
+	//char MD_FRONT_ADDR[] = "tcp://218.56.58.221:5996?exchangeId=111"; // MD配置参数
+	//"tcp://210.5.151.247:41213"; // 		// 前置地址
+	// Trader配置参数
+
+	///char  TRADER_FRONT_ADDR[] = "tcp://218.56.58.221:5996?exchangeId=111";	// 前置地址
+
+	//TThostFtdcInvestorIDType INVESTOR_ID = "demo";//"20105161";//"		// 投资者代码
+	//TThostFtdcPasswordType  PASSWORD = "112288";//"123456";//;		// 用户密码	
+
+
+
+	TThostFtdcCommandTypeType MdFront;
+
+	TThostFtdcCommandTypeType TraderFront;
+
 	CThostFtdcReqUserLoginField req;
+
+	TThostFtdcBrokerIDType	BROKER_ID = "7080";			// 经纪公司代码
+
 	memset(&req, 0, sizeof(CThostFtdcReqUserLoginField));
 	memcpy(req.BrokerID, BROKER_ID, sizeof(TThostFtdcBrokerIDType));
-	memcpy(req.UserID, INVESTOR_ID, sizeof(TThostFtdcUserIDType));
-	memcpy(req.Password, PASSWORD, sizeof(TThostFtdcPasswordType));
-	
+	memcpy(req.UserID, INVESTOR_ID.c_str(), sizeof(TThostFtdcUserIDType));
+	memcpy(req.Password, PASSWORD.c_str(), sizeof(TThostFtdcPasswordType));
+
+	memset(&MdFront, 0, sizeof(TThostFtdcCommandTypeType));
+	memcpy(MdFront, MDFRONT_ADDR.c_str(), sizeof(TThostFtdcCommandTypeType));
+
+	memset(&TraderFront, 0, sizeof(TThostFtdcCommandTypeType));
+	memcpy(TraderFront, TRADERFRONT_ADDR.c_str(), sizeof(TThostFtdcCommandTypeType));
+
 	//初始化交易UserApi
 	CThostFtdcTraderApi *pTraderUserApi = CThostFtdcTraderApi::CreateFtdcTraderApi();			// 创建UserApi
-	
+
 	pTraderUserSpi = new CTraderSpi(pTraderUserApi, req);
-	
+
 	pTraderUserApi->RegisterSpi((CThostFtdcTraderSpi*)pTraderUserSpi);			// 注册事件类
-	
+
 	pTraderUserApi->SubscribePublicTopic(THOST_TERT_QUICK);				// 注册公有流
 	pTraderUserApi->SubscribePrivateTopic(THOST_TERT_QUICK);				// 注册私有流
-	pTraderUserApi->RegisterFront(TRADER_FRONT_ADDR);							// connect
+
+	pTraderUserApi->RegisterFront(MdFront);							// connect
 	pTraderUserApi->Init();
 
-	
+
 	// 初始化行情UserApi
 	CThostFtdcMdApi* pMDUserApi = CThostFtdcMdApi::CreateFtdcMdApi();			// 创建UserApi
-	
-	pMDUserSpi = new CMdSpi(pMDUserApi, req);
-	
-	pMDUserApi->RegisterSpi(pMDUserSpi);						// 注册事件类
-	
-	pMDUserApi->RegisterFront(MD_FRONT_ADDR);					// connect
-	
-	pMDUserApi->Init();
-	
-	//std::unique_lock <std::mutex> lck(g_lockqueue);
 
-	//while (!InitFinished) // 如果标志位不为 true, 则等待...
-	//
-	//	cv.wait(lck); // 当前线程被阻塞, 当全局标志位变为 true 之后 线程继续执行
+	pMDUserSpi = new CMdSpi(pMDUserApi, req);
+
+	pMDUserApi->RegisterSpi(pMDUserSpi);						// 注册事件类
+
+	pMDUserApi->RegisterFront(TraderFront);					// connect
+
+	pMDUserApi->Init();
+
+
 
 	//等待系统初始化完成
 	while (!InitFinished)

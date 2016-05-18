@@ -66,7 +66,7 @@ extern std::mutex   g_lockqueue;
 
 extern std::condition_variable cv; // 全局条件变量.
 
-extern int spreed ;//= 2;
+extern double spreed ;//= 2;
 
 extern int iNextOrderRef;  ///报单应用编号 
 

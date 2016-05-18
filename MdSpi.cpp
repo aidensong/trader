@@ -141,7 +141,7 @@ void CMdSpi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketDa
 	   //g_lockqueue.lock();
 	 
 	
-	CThostFtdcDepthMarketDataField ThostFtdcDepthMarketDataField;
+	 CThostFtdcDepthMarketDataField ThostFtdcDepthMarketDataField;
 	 
 	 ThostFtdcDepthMarketDataField = *pDepthMarketData;
 	
