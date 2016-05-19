@@ -70,38 +70,38 @@ void  LogpInvestorPosition()
 {
 	for (CThostFtdcInvestorPositionField InvestorPosition : InvestorPositionList)
 	{
-		cerr << "<持仓>||<" << InvestorPosition.InstrumentID << ">|方向(2.买3.卖):" << InvestorPosition.PosiDirection << "|持仓:" << InvestorPosition.Position
-			<< "|多头冻结:" << InvestorPosition.LongFrozen<< "|空头冻结:" << InvestorPosition.ShortFrozen<< endl;
-		LOG(INFO) << "<持仓>||<" << InvestorPosition.InstrumentID <<">|方向(2.买3.卖):" << InvestorPosition.PosiDirection<< "|持仓:" << InvestorPosition.Position
-			<< " | 多头冻结：" << InvestorPosition.LongFrozen<< " | 空头冻结：" << InvestorPosition.ShortFrozen<< endl;
-	}
+		if (InvestorPosition.Position > 0)  //存在持仓，才打印持仓记录
+		{
+			cerr << "<持仓>||<" << InvestorPosition.InstrumentID << ">|方向(2.买3.卖):" << InvestorPosition.PosiDirection << "|持仓:" << InvestorPosition.Position
+				<< "|多头冻结:" << InvestorPosition.LongFrozen << "|空头冻结:" << InvestorPosition.ShortFrozen << endl;
+			LOG(INFO) << "<持仓>||<" << InvestorPosition.InstrumentID << ">|方向(2.买3.卖):" << InvestorPosition.PosiDirection << "|持仓:" << InvestorPosition.Position
+				<< " | 多头冻结：" << InvestorPosition.LongFrozen << " | 空头冻结：" << InvestorPosition.ShortFrozen << endl;
+		}
+		}
 }
 ///报单线程 双边报价策略
 void QuotaStrategy()
 {
+	//	/// typedef char TThostFtdcOrderStatusType;  TFtdcOrderStatusType是一个报单状态类型
+	
+	//#define THOST_FTDC_OST_AllTraded '0' 全部成交 
+	//	///
+	//#define THOST_FTDC_OST_PartTradedQueueing '1' 部分成交还在队列中
+	//	///
+	//#define THOST_FTDC_OST_PartTradedNotQueueing '2' 部分成交不在队列中
+	//	///
+	//#define THOST_FTDC_OST_NoTradeQueueing '3' 未成交还在队列中
+	//	///
+	//#define THOST_FTDC_OST_NoTradeNotQueueing '4' 未成交不在队列中
+	//	///
+	//#define THOST_FTDC_OST_Canceled '5' 撤单
+	//	///
+	//#define THOST_FTDC_OST_Unknown 'a' 未知
+	//	///
+	//#define THOST_FTDC_OST_NotTouched 'b' 尚未触发
+	//	///
+	//#define THOST_FTDC_OST_Touched 'c' 已触发
 
-	//	///TFtdcOrderStatusType是一个报单状态类型
-	//	/////////////////////////////////////////////////////////////////////////
-	//	///全部成交
-	//#define THOST_FTDC_OST_AllTraded '0'
-	//	///部分成交还在队列中
-	//#define THOST_FTDC_OST_PartTradedQueueing '1'
-	//	///部分成交不在队列中
-	//#define THOST_FTDC_OST_PartTradedNotQueueing '2'
-	//	///未成交还在队列中
-	//#define THOST_FTDC_OST_NoTradeQueueing '3'
-	//	///未成交不在队列中
-	//#define THOST_FTDC_OST_NoTradeNotQueueing '4'
-	//	///撤单
-	//#define THOST_FTDC_OST_Canceled '5'
-	//	///未知
-	//#define THOST_FTDC_OST_Unknown 'a'
-	//	///尚未触发
-	//#define THOST_FTDC_OST_NotTouched 'b'
-	//	///已触发
-	//#define THOST_FTDC_OST_Touched 'c'
-	//
-	//	typedef char TThostFtdcOrderStatusType;
 
 
 	//市场存在买卖报价	
@@ -400,7 +400,7 @@ void main(void)
 	pTraderUserApi->SubscribePublicTopic(THOST_TERT_QUICK);				// 注册公有流
 	pTraderUserApi->SubscribePrivateTopic(THOST_TERT_QUICK);				// 注册私有流
 
-	pTraderUserApi->RegisterFront(MdFront);							// connect
+	pTraderUserApi->RegisterFront(TraderFront);							// connect
 	pTraderUserApi->Init();
 
 
@@ -411,7 +411,7 @@ void main(void)
 
 	pMDUserApi->RegisterSpi(pMDUserSpi);						// 注册事件类
 
-	pMDUserApi->RegisterFront(TraderFront);					// connect
+	pMDUserApi->RegisterFront(MdFront);					// connect
 
 	pMDUserApi->Init();
 

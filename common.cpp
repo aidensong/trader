@@ -89,16 +89,32 @@ void PositionChange(string InstrumentID, TThostFtdcDirectionType Direction, TTho
 			PosiDirectionType = THOST_FTDC_PD_Short;
 
 		}
+		bool isFinded = false;
+		
 		for (CThostFtdcInvestorPositionField& InvestorPosition : InvestorPositionList)
 		{
 			if ((InvestorPosition.PosiDirection == PosiDirectionType)
 				&& (strcmp(InvestorPosition.InstrumentID, InstrumentID.c_str()) == 0))
 			{
 				InvestorPosition.Position += Volume;
-			
+				isFinded = true;
 			}
 		}
-	} //Æ½²Ö
+		if (!isFinded)
+		{
+			///
+			CThostFtdcInvestorPositionField newPosition;
+			newPosition.PosiDirection = PosiDirectionType;
+			strcpy(newPosition.InstrumentID, InstrumentID.c_str());
+			newPosition.Position = 0;
+			newPosition.LongFrozen = 0;
+			newPosition.ShortFrozen = 0;
+			newPosition.Position += Volume;
+			InvestorPositionList.push_back(newPosition);
+		}
+	} 
+	
+	//Æ½²Ö
 	else
 	{
 		if (Direction == THOST_FTDC_D_Buy)

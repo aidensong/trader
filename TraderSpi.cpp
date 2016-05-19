@@ -242,18 +242,35 @@ void CTraderSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInve
 		{
 		//更新持仓列表
 		g_lockqueue.lock();
-		InvestorPositionList.push_back(*pInvestorPosition);
-	    cerr <<      "<持仓>||合约<" << pInvestorPosition->InstrumentID << ">|方向(2.多3.空):" << pInvestorPosition->PosiDirection << "|持仓:" << pInvestorPosition->Position
-			<< "|多头冻结:" << pInvestorPosition->LongFrozen<< "|空头冻结:" << pInvestorPosition->ShortFrozen<< endl;
-		LOG(INFO) << "<持仓>|合约<" << pInvestorPosition->InstrumentID << ">|方向(2.多3.空):" << pInvestorPosition->PosiDirection << "|持仓:" << pInvestorPosition->Position
-			<< "|多头冻结：" << pInvestorPosition->LongFrozen<< "|空头冻结：" << pInvestorPosition->ShortFrozen<< endl;
+		
+		//存在委托 CTP 会出现持仓为0而冻结持仓不为0的情况，需要清理一下。
+		
+		if (pInvestorPosition->Position > 0)
+		{
+			/*	pInvestorPosition->LongFrozen = 0;
+				pInvestorPosition->ShortFrozen = 0;
+				}*/
+			InvestorPositionList.push_back(*pInvestorPosition);
+			
+			cerr << "<持仓>||合约<" << pInvestorPosition->InstrumentID << ">|方向(2.多3.空):" << pInvestorPosition->PosiDirection << "|持仓:" << pInvestorPosition->Position
+				<< "|多头冻结:" << pInvestorPosition->LongFrozen << "|空头冻结:" << pInvestorPosition->ShortFrozen << endl;
+			LOG(INFO) << "<持仓>|合约<" << pInvestorPosition->InstrumentID << ">|方向(2.多3.空):" << pInvestorPosition->PosiDirection << "|持仓:" << pInvestorPosition->Position
+				<< "|多头冻结：" << pInvestorPosition->LongFrozen << "|空头冻结：" << pInvestorPosition->ShortFrozen << endl;
+
+		}
 		g_lockqueue.unlock();
 	    }
 	}
 	///
 	if (bIsLast)
 	{
-	
+	//	
+	//	
+	//	for (CThostFtdcInvestorPositionField Position : InvestorPositionList)
+	//	{
+
+	//	}
+
 		//查询委托
 		ReqQryOrder();
 	}
