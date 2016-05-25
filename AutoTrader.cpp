@@ -11,8 +11,11 @@ string MDFRONT_ADDR;       //行情地址
 string TRADERFRONT_ADDR;   //交易地址
 string INVESTOR_ID;        //用户
 string PASSWORD;           //密码
+string BROKERID;           // 经纪公司代码
 string StrSpreed;         //价差
-
+string StrVolume;         //报单手数
+string strUserProductInfo; //用户端产品信息
+string	strAuthCode; ///认证码
 
 ///读取合约配置文件
 void  SysInit()
@@ -24,16 +27,32 @@ void  SysInit()
 
 	TRADERFRONT_ADDR = configSettings.Read("TraderAddress", TRADERFRONT_ADDR);
 
+	BROKERID = configSettings.Read("brokerID", BROKERID);
+
 	INVESTOR_ID = configSettings.Read("user", INVESTOR_ID);
 
 	PASSWORD = configSettings.Read("pwd", PASSWORD);
 
-	StrSpreed = configSettings.Read("spreed", StrSpreed);
+	strUserProductInfo = configSettings.Read("UserProductInfo", strUserProductInfo);
 
-    stringstream convert;
+	strAuthCode = configSettings.Read("AuthCode", strAuthCode);
+
+
+	StrSpreed = configSettings.Read("spreed", StrSpreed);
+	stringstream convert;
 	convert << StrSpreed;
-	convert >> spreed;	
-	
+	convert >> spreed;
+
+	StrVolume = configSettings.Read("volume", StrVolume);
+	stringstream convertvol;
+	convertvol << StrVolume;
+	convertvol >> volume;
+ 
+
+	//memset(&req, 0, sizeof(req));
+	//strcpy(Authenticate.BrokerID, BROKER_ID);
+	//strcpy(Authenticate.UserID, INVESTOR_ID);
+	//strcpy(Authenticate.UserProductInfo\, PASSWORD);
 	//读取配置文件代码
 	//std::vector <string> list;
 	ifstream inf;
@@ -157,14 +176,14 @@ void QuotaStrategy()
 				//#define THOST_FTDC_D_Buy 
 				//#define THOST_FTDC_D_Sell		
 				stringstream bidstr;				
-				pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Buy, MarketDataField[InstrumentID].BidPrice1 - spreed/2 , InstrumentID);
+				pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Buy, MarketDataField[InstrumentID].BidPrice1 - spreed/2 , InstrumentID,volume);
 				bidstr << iNextOrderRef;
 				bidstr >> BidORDER_REF_present[InstrumentID];
 				
 				
 				
 				stringstream askstr;
-				pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Sell, MarketDataField[InstrumentID].AskPrice1 + spreed/2 , InstrumentID);
+				pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Sell, MarketDataField[InstrumentID].AskPrice1 + spreed / 2, InstrumentID, volume);;
 				askstr << iNextOrderRef;
 				askstr >> AskORDER_REF_present[InstrumentID];
 			}
@@ -200,7 +219,7 @@ void QuotaStrategy()
 				if (Ask_refill[InstrumentID].compare(AskORDER_REF_present[InstrumentID]) != 0)
 				{
 					stringstream ss;				
-					pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Sell, BidPrice + spreed, InstrumentID);
+					pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Sell, BidPrice + spreed, InstrumentID, volume);
 					ss << iNextOrderRef;
 					ss >> AskORDER_REF_present[InstrumentID];
 					Ask_refill[InstrumentID] = AskORDER_REF_present[InstrumentID];
@@ -234,7 +253,7 @@ void QuotaStrategy()
 				if (Bid_refill[InstrumentID].compare(BidORDER_REF_present[InstrumentID]) != 0)
 				{
 					stringstream ss;				
-					pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Buy, AskPrice - spreed, InstrumentID);
+					pTraderUserSpi->ReqOrderInsert(THOST_FTDC_D_Buy, AskPrice - spreed, InstrumentID, volume);
 					ss << iNextOrderRef;
 					ss >> BidORDER_REF_present[InstrumentID];
 					Bid_refill[InstrumentID] = BidORDER_REF_present[InstrumentID];
@@ -258,10 +277,14 @@ void mProcess()
 			
 			msg = MsgQueue.front();
 
-			cerr <<      "****************************消息BEGIN*************************************" << endl;
-			LOG(INFO) << "****************************消息BEGIN*************************************" << endl;
-			cerr <<      "<消息>||类型(0.委托1.成交2.委托录入3.撤单):" << msg.Msg_Type << "|消息数:" << MsgQueue.size() << endl;
-			LOG(INFO) << "<消息>||类型(0.委托1.成交2.委托录入3.撤单):" << msg.Msg_Type << "|消息数:" << MsgQueue.size() << endl;			
+			cerr <<      "----------------------------MSG_BEGIN-------------------------------------" << endl;
+			LOG(INFO) << "----------------------------MSG_BEGIN-------------------------------------" << endl;
+			
+			//cerr <<      "<消息>||类型(0.委托1.成交2.委托录入3.撤单):" << msg.Msg_Type << "|消息数:" << MsgQueue.size() << endl;
+			//LOG(INFO) << "<消息>||类型(0.委托1.成交2.委托录入3.撤单):" << msg.Msg_Type << "|消息数:" << MsgQueue.size() << endl;		
+
+			cerr << "<消息>|| 消息数:" << MsgQueue.size() << endl;
+			LOG(INFO) << "<消息>||消息数:" << MsgQueue.size() << endl;			
 			MsgQueue.pop();			
 			g_lockqueue.unlock();			
 			//pTraderUserSpi->IsErrorRspInfo(&msg.RspInfo);
@@ -310,18 +333,21 @@ void mProcess()
 							<< ">方向(0.买1.卖):" << msg.RtnOrder.Direction << "|手数:" << msg.RtnOrder.VolumeTotalOriginal
 							<< "|开平(0.开1.平):" << msg.RtnOrder.CombOffsetFlag[0]
 							<< "|价格:" << msg.RtnOrder.LimitPrice
-							<< "|状态:" << msg.RtnOrder.OrderStatus << endl;			
+							<< "|状态:" << msg.RtnOrder.OrderStatus << endl;	
 					
 						LogpInvestorPosition();					
 						//更新委托列表中的状态
 						OrderMap[msg.RtnOrder.OrderRef] = msg.RtnOrder;
+						cerr << "----------------------------MSG_END-------------------------------------" << endl;
+					
 						
+						LOG(INFO) << "----------------------------MSG_END-------------------------------------" << endl;
+
 						//执行策略
 						QuotaStrategy();
 					}
 					
-					cerr <<      "****************************消息END*************************************" << endl;
-					LOG(INFO) << "****************************消息END*************************************" << endl;
+				
 					break;
 				};		
 				// 成交回报
@@ -338,6 +364,19 @@ void mProcess()
 					//LogpInvestorPosition();
 				
 					//g_lockqueue.unlock();
+
+					cerr << "<成交>||编号:" << msg.RtnTrade.OrderSysID << "|<" << msg.RtnTrade.InstrumentID
+						<< ">方向(0.买1.卖):" << msg.RtnTrade.Direction << "手数:" << msg.RtnTrade.Volume
+						<< "|开平(0.开1.平):" << msg.RtnTrade.OffsetFlag
+						<< "|价格:" << msg.RtnTrade.Price << endl;
+
+					LOG(INFO) << "<成交>||编号:" << msg.RtnTrade.OrderSysID << "|<" << msg.RtnTrade.InstrumentID
+						<< ">方向(0.买1.卖):" << msg.RtnTrade.Direction << "手数:" << msg.RtnTrade.Volume
+						<< "|开平(0.开1.平):" << msg.RtnTrade.OffsetFlag
+						<< "|价格:" << msg.RtnTrade.Price << endl;
+					
+					cerr << "----------------------------MSG_END-------------------------------------" << endl;
+					LOG(INFO) << "----------------------------MSG_END-------------------------------------" << endl;
 
 					break;
 				};
@@ -365,7 +404,7 @@ void main(void)
 	//LOG
 	google::InitGoogleLogging("AutoTrader");  //参数为自己的可执行文件名 		
 
-	google::SetLogDestination(google::GLOG_INFO, "./Log/Auto_Info");
+	google::SetLogDestination(google::GLOG_INFO, "./Log/LOG");
 
 	FLAGS_max_log_size = 50;  //最大日志大小为 50MB
 
@@ -375,15 +414,26 @@ void main(void)
 
 	TThostFtdcCommandTypeType TraderFront;
 
-	CThostFtdcReqUserLoginField req;
-
-	TThostFtdcBrokerIDType	BROKER_ID = "7080";			// 经纪公司代码
+	//TThostFtdcBrokerIDType	BROKER_ID = "7080";			
+	
+	CThostFtdcReqUserLoginField req;	
 
 	memset(&req, 0, sizeof(CThostFtdcReqUserLoginField));
-	memcpy(req.BrokerID, BROKER_ID, sizeof(TThostFtdcBrokerIDType));
+	memcpy(req.BrokerID, BROKERID.c_str(), sizeof(TThostFtdcBrokerIDType));
 	memcpy(req.UserID, INVESTOR_ID.c_str(), sizeof(TThostFtdcUserIDType));
 	memcpy(req.Password, PASSWORD.c_str(), sizeof(TThostFtdcPasswordType));
+	
+	//客户端登录认证信息
+	CThostFtdcReqAuthenticateField  Authenticate;
 
+	memset(&Authenticate, 0, sizeof(CThostFtdcReqUserLoginField));
+	memcpy(Authenticate.BrokerID, BROKERID.c_str(), sizeof(TThostFtdcBrokerIDType));
+	memcpy(Authenticate.UserID, INVESTOR_ID.c_str(), sizeof(TThostFtdcUserIDType));
+	memcpy(Authenticate.UserProductInfo, strUserProductInfo.c_str(), sizeof(TThostFtdcProductInfoType));
+	memcpy(Authenticate.AuthCode, strAuthCode.c_str(), sizeof(TThostFtdcAuthCodeType));
+	
+	
+	
 	memset(&MdFront, 0, sizeof(TThostFtdcCommandTypeType));
 	memcpy(MdFront, MDFRONT_ADDR.c_str(), sizeof(TThostFtdcCommandTypeType));
 
@@ -393,7 +443,7 @@ void main(void)
 	//初始化交易UserApi
 	CThostFtdcTraderApi *pTraderUserApi = CThostFtdcTraderApi::CreateFtdcTraderApi();			// 创建UserApi
 
-	pTraderUserSpi = new CTraderSpi(pTraderUserApi, req);
+	pTraderUserSpi = new CTraderSpi(pTraderUserApi, req,Authenticate);
 
 	pTraderUserApi->RegisterSpi((CThostFtdcTraderSpi*)pTraderUserSpi);			// 注册事件类
 

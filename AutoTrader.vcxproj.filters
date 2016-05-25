@@ -24,18 +24,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="ThostTraderApi\ThostFtdcMdApi.h">
-      <Filter>ThostTraderApi</Filter>
-    </ClInclude>
-    <ClInclude Include="ThostTraderApi\ThostFtdcTraderApi.h">
-      <Filter>ThostTraderApi</Filter>
-    </ClInclude>
-    <ClInclude Include="ThostTraderApi\ThostFtdcUserApiDataType.h">
-      <Filter>ThostTraderApi</Filter>
-    </ClInclude>
-    <ClInclude Include="ThostTraderApi\ThostFtdcUserApiStruct.h">
-      <Filter>ThostTraderApi</Filter>
-    </ClInclude>
     <ClInclude Include="MdSpi.h">
       <Filter>MD</Filter>
     </ClInclude>
@@ -67,6 +55,18 @@
     <ClInclude Include="Config.h">
       <Filter>Config</Filter>
     </ClInclude>
+    <ClInclude Include="ThostTraderApi\ThostFtdcMdApi.h">
+      <Filter>ThostTraderApi</Filter>
+    </ClInclude>
+    <ClInclude Include="ThostTraderApi\ThostFtdcTraderApi.h">
+      <Filter>ThostTraderApi</Filter>
+    </ClInclude>
+    <ClInclude Include="ThostTraderApi\ThostFtdcUserApiDataType.h">
+      <Filter>ThostTraderApi</Filter>
+    </ClInclude>
+    <ClInclude Include="ThostTraderApi\ThostFtdcUserApiStruct.h">
+      <Filter>ThostTraderApi</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -96,26 +96,26 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ThostTraderApi\thostmduserapi.dll">
-      <Filter>ThostTraderApi</Filter>
-    </None>
-    <None Include="ThostTraderApi\thosttraderapi.dll">
-      <Filter>ThostTraderApi</Filter>
-    </None>
-    <None Include="ThostTraderApi\error.dtd">
-      <Filter>ThostTraderApi</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
+    <Library Include="glog\libglog_static.lib">
+      <Filter>glog</Filter>
+    </Library>
     <Library Include="ThostTraderApi\thostmduserapi.lib">
       <Filter>ThostTraderApi</Filter>
     </Library>
     <Library Include="ThostTraderApi\thosttraderapi.lib">
       <Filter>ThostTraderApi</Filter>
     </Library>
-    <Library Include="glog\libglog_static.lib">
-      <Filter>glog</Filter>
-    </Library>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ThostTraderApi\error.dtd">
+      <Filter>ThostTraderApi</Filter>
+    </None>
+    <None Include="ThostTraderApi\thostmduserapi.dll">
+      <Filter>ThostTraderApi</Filter>
+    </None>
+    <None Include="ThostTraderApi\thosttraderapi.dll">
+      <Filter>ThostTraderApi</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="ThostTraderApi\error.xml">

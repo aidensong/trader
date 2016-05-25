@@ -5,7 +5,9 @@
 
 int iRequestID = 0; // 请求编号
 
-double spreed = 2.0;
+double spreed = 2.0;  //价差
+
+int volume=1;
 
 int iNextOrderRef = 0;  ///报单应用编号
 
@@ -66,7 +68,7 @@ int CheckEnClose(string InstrumentID, TThostFtdcDirectionType Direction)
 			&& (strcmp(InvestorPosition.InstrumentID,InstrumentID.c_str())==0))
 		{
 		
-			return (isLong ? InvestorPosition.Position - InvestorPosition.LongFrozen : InvestorPosition.Position-InvestorPosition.ShortFrozen);
+			return (isLong ? InvestorPosition.Position - InvestorPosition.ShortFrozen : InvestorPosition.Position - InvestorPosition.LongFrozen);
 		}
 	}
 	return 0;

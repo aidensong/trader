@@ -6,8 +6,6 @@
 #pragma warning(disable : 4996)
 using namespace std;
 
-
-
 TThostFtdcOrderRefType	ORDER_REF;	//报单引用
 TThostFtdcOrderRefType	EXECORDER_REF;	//执行宣告引用
 TThostFtdcOrderRefType	FORQUOTE_REF;	//询价引用
@@ -23,8 +21,35 @@ bool IsFlowControl(int iResult)
 void CTraderSpi::OnFrontConnected()
 {
 	cerr << "--->>> " << "OnFrontConnected" << endl;
-	///用户登录请求
-	ReqUserLogin();
+	
+	///客户端认证请求
+	ReqAuthenticate();
+	//ReqUserLogin();
+}
+
+///CTP认证
+void CTraderSpi::ReqAuthenticate()
+{
+	//CThostFtdcReqAuthenticateField  Authenticate;
+	//memset(&req, 0, sizeof(req));
+	//strcpy(Authenticate.BrokerID, BROKER_ID);
+	//strcpy(Authenticate.UserID, INVESTOR_ID);
+	//strcpy(Authenticate.UserProductInfo\, PASSWORD);	
+	int iResult = pTraderUserApi->ReqAuthenticate(&Authenticate, ++iRequestID);
+
+	cerr << "--->>> 发送用户登录认证请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
+}
+//CTP认证回调函数
+void CTraderSpi::OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateField, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+	cerr << "OnRspAuthenticate" << endl;
+	if (bIsLast && !IsErrorRspInfo(pRspInfo))
+	{
+		
+		cerr << "<认证>||客户端认证成功！" << endl;
+		ReqUserLogin();
+	}
+	
 }
 
 void CTraderSpi::ReqUserLogin()
@@ -38,11 +63,15 @@ void CTraderSpi::ReqUserLogin()
 	cerr << "--->>> 发送用户登录请求: " << iResult << ((iResult == 0) ? ", 成功" : ", 失败") << endl;
 }
 
+
+
 void CTraderSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
 	cerr << "--->>> " << "OnRspUserLogin" << endl;
 	if (bIsLast && !IsErrorRspInfo(pRspInfo))
 	{
+		
+		cerr << "<登录>||客户登录成功！" << endl;
 		// 保存会话参数
 		FRONT_ID = pRspUserLogin->FrontID;
 		SESSION_ID = pRspUserLogin->SessionID;
@@ -276,7 +305,7 @@ void CTraderSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInve
 	}
 }
 
-void CTraderSpi::ReqOrderInsert(TThostFtdcDirectionType DIRECTION, TThostFtdcPriceType LIMIT_PRICE, string InstrumentID)
+void CTraderSpi::ReqOrderInsert(TThostFtdcDirectionType DIRECTION, TThostFtdcPriceType LIMIT_PRICE, string InstrumentID,int volume)
 {
 	
 		CThostFtdcInputOrderField req;		
@@ -319,7 +348,7 @@ void CTraderSpi::ReqOrderInsert(TThostFtdcDirectionType DIRECTION, TThostFtdcPri
 		req.LimitPrice = LIMIT_PRICE;
 						
 		///数量: 1
-		req.VolumeTotalOriginal = 1;
+		req.VolumeTotalOriginal = volume;
 		///有效期类型: 当日有效
 		req.TimeCondition = THOST_FTDC_TC_GFD;
 		///GTD日期

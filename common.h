@@ -68,6 +68,8 @@ extern std::condition_variable cv; // 全局条件变量.
 
 extern double spreed ;//= 2;
 
+extern int volume;//= 2;
+
 extern int iNextOrderRef;  ///报单应用编号 
 
 extern queue<Msg> MsgQueue;   ///消息队列

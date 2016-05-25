@@ -77,7 +77,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.\ThostTraderApi\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;__STL_DEBUG;GOOGLE_GLOG_DLL_DECL=;GLOG_NO_ABBREVIATED_SEVERITIES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader />
@@ -93,10 +93,11 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>E:\Current Jobs\AutoTrader\glog;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy .\ThostTraderApi\thosttraderapi.dll .\bin\</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -141,14 +142,14 @@
     <Library Include="ThostTraderApi\thosttraderapi.lib" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ThostTraderApi\error.dtd" />
+    <None Include="ThostTraderApi\error.dtd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="ThostTraderApi\thostmduserapi.dll" />
     <None Include="ThostTraderApi\thosttraderapi.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="ThostTraderApi\error.xml">
-      <SubType>Designer</SubType>
-    </Xml>
+    <Xml Include="ThostTraderApi\error.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

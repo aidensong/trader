@@ -12,11 +12,15 @@ class CTraderSpi : public CThostFtdcTraderSpi
 {
 public:	
 	//构造函数
-	CTraderSpi(CThostFtdcTraderApi* api, CThostFtdcReqUserLoginField req) :pTraderUserApi(api), reqLoginField(req){};
+	CTraderSpi(CThostFtdcTraderApi* api, CThostFtdcReqUserLoginField req, 
+		CThostFtdcReqAuthenticateField  Authenticate) :pTraderUserApi(api), reqLoginField(req), Authenticate(Authenticate){};
 	
 	///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
 	virtual void OnFrontConnected();
 
+	///客户端认证响应
+	virtual void OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateField, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+	
 	///登录请求响应
 	virtual void OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
@@ -104,7 +108,7 @@ public:
 	///请求查询委托
 	void ReqQryOrder();
 	///报单录入请求
-	void ReqOrderInsert(TThostFtdcDirectionType DIRECTION, TThostFtdcPriceType LIMIT_PRICE ,string InstrumentID);
+	void ReqOrderInsert(TThostFtdcDirectionType DIRECTION, TThostFtdcPriceType LIMIT_PRICE, string InstrumentID, int volume);
 	///执行宣告录入请求
 	void ReqExecOrderInsert();
 	///询价录入请求
@@ -131,11 +135,15 @@ public:
 	bool IsTradingExecOrder(CThostFtdcExecOrderField *pExecOrder);
 	// 是否未撤销的报价
 	bool IsTradingQuote(CThostFtdcQuoteField *pQuote);
+
+	void CTraderSpi::ReqAuthenticate();
 	TThostFtdcFrontIDType	FRONT_ID;	//前置编号
 	TThostFtdcSessionIDType	SESSION_ID;	//会话编号
 private:
 
 	CThostFtdcReqUserLoginField reqLoginField;
+
+	CThostFtdcReqAuthenticateField  Authenticate;
 
 	CThostFtdcTraderApi* pTraderUserApi;
 
